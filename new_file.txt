@@ -1,3 +1,8 @@
+<<<<<<< HEAD
 new local update
 new local update
 new local update
+=======
+new_branch_hello
+Updated from github directly
+>>>>>>> 53dfafcdfc834ab2b6b00c3e77be4bfab6ed61e8
