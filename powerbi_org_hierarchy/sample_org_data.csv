@@ -1,0 +1,23 @@
+EmployeeID,ManagerID,Name,Title,Department,Location
+E001,,Sarah Chen,Chief Executive Officer,Executive Leadership,New York
+E002,E001,Michael Torres,Chief Financial Officer,Finance,New York
+E003,E001,Priya Sharma,Chief Technology Officer,Technology,San Francisco
+E004,E001,James O'Brien,Chief Operating Officer,Operations,Chicago
+E005,E001,Aisha Patel,Chief People Officer,Human Resources,New York
+E006,E002,David Kim,VP Finance & Accounting,Finance,New York
+E007,E002,Rachel Green,VP Investor Relations,Finance,New York
+E008,E003,Li Wei,VP Engineering,Technology,San Francisco
+E009,E003,Sofia Nguyen,VP Product Management,Product,San Francisco
+E010,E003,Omar Hassan,VP Data & Analytics,Technology,Austin
+E011,E004,Emily Carter,VP Supply Chain,Operations,Chicago
+E012,E004,Carlos Mendez,VP Customer Success,Operations,Dallas
+E013,E005,Nina Johansson,VP Talent Acquisition,Human Resources,New York
+E014,E006,Alex Brown,Director of Financial Planning,Finance,New York
+E015,E006,Maya Singh,Director of Tax,Finance,New York
+E016,E008,Ryan Park,Director of Backend Engineering,Technology,San Francisco
+E017,E008,Fatima Ali,Director of Frontend Engineering,Technology,San Francisco
+E018,E009,Lucas Schmidt,Director of Product Design,Product,San Francisco
+E019,E010,Hannah Lee,Director of Business Intelligence,Technology,Austin
+E020,E011,Chris Walsh,Manager – Logistics,Operations,Chicago
+E021,E016,Tom Andersen,Senior Software Engineer,Technology,San Francisco
+E022,E017,Maria Lopez,Senior UI Engineer,Technology,San Francisco

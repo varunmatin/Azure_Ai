@@ -1,0 +1,427 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "Power BI Organization Hierarchy Chart — Deneb Visual. Data is read from Power BI dataset. Interactive: click to select, hover for tooltip.",
+  "width": 1200,
+  "height": 820,
+  "padding": {"left": 30, "right": 30, "top": 60, "bottom": 30},
+  "background": "#EEF2F7",
+  "autosize": {"type": "fit", "contains": "padding"},
+
+  "signals": [
+    {"name": "nodeW",  "value": 200},
+    {"name": "nodeH",  "value": 98},
+    {"name": "hdrH",   "value": 26},
+    {"name": "gapX",   "value": 20},
+    {"name": "gapY",   "value": 60},
+
+    {
+      "name": "selectedID",
+      "value": "",
+      "on": [
+        {
+          "events": "@nodeGroup:click",
+          "update": "datum.EmployeeID != selectedID ? datum.EmployeeID : ''"
+        }
+      ]
+    }
+  ],
+
+  "data": [
+    {
+      "name": "dataset"
+    },
+    {
+      "name": "tree",
+      "source": "dataset",
+      "transform": [
+        {
+          "type": "stratify",
+          "key": "EmployeeID",
+          "parentKey": "ManagerID"
+        },
+        {
+          "type": "tree",
+          "method": "tidy",
+          "size": [{"signal": "width - gapX"}, {"signal": "height - gapY - 60"}],
+          "separation": true,
+          "as": ["x", "y", "depth", "children"]
+        }
+      ]
+    },
+    {
+      "name": "links",
+      "source": "tree",
+      "transform": [
+        {"type": "treelinks"},
+        {
+          "type": "linkpath",
+          "orient":  "vertical",
+          "shape":   "orthogonal",
+          "sourceX": "datum.source.x",
+          "sourceY": "datum.source.y",
+          "targetX": "datum.target.x",
+          "targetY": "datum.target.y"
+        }
+      ]
+    }
+  ],
+
+  "marks": [
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x":        {"signal": "width / 2"},
+          "y":        {"value": -35},
+          "text":     {"value": "Organization Hierarchy"},
+          "align":    {"value": "center"},
+          "baseline": {"value": "top"},
+          "fill":     {"value": "#1E3A5F"},
+          "fontSize": {"value": 22},
+          "fontWeight": {"value": "bold"},
+          "font":     {"value": "Segoe UI, sans-serif"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x":        {"signal": "width / 2"},
+          "y":        {"value": -12},
+          "text":     {"value": "Click a card to highlight  •  Hover for full details"},
+          "align":    {"value": "center"},
+          "baseline": {"value": "top"},
+          "fill":     {"value": "#64748B"},
+          "fontSize": {"value": 11},
+          "font":     {"value": "Segoe UI, sans-serif"}
+        }
+      }
+    },
+
+    {
+      "type": "path",
+      "from": {"data": "links"},
+      "encode": {
+        "update": {
+          "path":         {"field": "path"},
+          "stroke":       {"value": "#94A3B8"},
+          "strokeWidth":  {"value": 1.5},
+          "strokeOpacity": {"value": 0.75}
+        }
+      }
+    },
+
+    {
+      "name": "nodeGroup",
+      "type": "group",
+      "from": {"data": "tree"},
+      "encode": {
+        "update": {
+          "x":      {"signal": "datum.x - nodeW / 2"},
+          "y":      {"signal": "datum.y + 30"},
+          "width":  {"signal": "nodeW"},
+          "height": {"signal": "nodeH"},
+          "cursor": {"value": "pointer"},
+          "tooltip": {
+            "signal": "{'👤 Name': datum.Name, '💼 Title': datum.Title, '🏢 Dept': datum.Department, '📍 Location': datum.Location, '🔢 Emp ID': datum.EmployeeID, '📊 Org Level': datum.depth + 1}"
+          }
+        }
+      },
+      "marks": [
+
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "x":    {"value": 3},
+              "y":    {"value": 3},
+              "rx":   {"value": 8},
+              "ry":   {"value": 8},
+              "fill": {"value": "#00000018"}
+            },
+            "update": {
+              "width":  {"signal": "nodeW"},
+              "height": {"signal": "nodeH"}
+            }
+          }
+        },
+
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "x":  {"value": 0},
+              "y":  {"value": 0},
+              "rx": {"value": 8},
+              "ry": {"value": 8}
+            },
+            "update": {
+              "width":       {"signal": "nodeW"},
+              "height":      {"signal": "nodeH"},
+              "fill":        {"value": "#FFFFFF"},
+              "stroke": {
+                "signal": "datum.EmployeeID == selectedID ? '#F97316' : '#CBD5E1'"
+              },
+              "strokeWidth": {
+                "signal": "datum.EmployeeID == selectedID ? 3 : 1"
+              }
+            },
+            "hover": {
+              "stroke":      {"value": "#3B82F6"},
+              "strokeWidth": {"value": 2.5}
+            }
+          }
+        },
+
+        {
+          "type": "rect",
+          "encode": {
+            "update": {
+              "x":      {"value": 0},
+              "y":      {"value": 0},
+              "width":  {"signal": "nodeW"},
+              "height": {"signal": "hdrH"},
+              "rx":     {"value": 8},
+              "ry":     {"value": 8},
+              "fill": {
+                "signal": "datum.depth === 0 ? '#1E3A5F' : datum.depth === 1 ? '#1D4ED8' : datum.depth === 2 ? '#0284C7' : datum.depth === 3 ? '#059669' : '#7C3AED'"
+              }
+            }
+          }
+        },
+        {
+          "type": "rect",
+          "encode": {
+            "update": {
+              "x":      {"value": 0},
+              "y":      {"value": 13},
+              "width":  {"signal": "nodeW"},
+              "height": {"value": 13},
+              "fill": {
+                "signal": "datum.depth === 0 ? '#1E3A5F' : datum.depth === 1 ? '#1D4ED8' : datum.depth === 2 ? '#0284C7' : datum.depth === 3 ? '#059669' : '#7C3AED'"
+              }
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":          {"value": 9},
+              "y":          {"value": 17},
+              "text": {
+                "signal": "datum.depth === 0 ? '▸ C-SUITE' : datum.depth === 1 ? '▸ VP / SVP' : datum.depth === 2 ? '▸ DIRECTOR' : datum.depth === 3 ? '▸ MANAGER' : '▸ INDIVIDUAL CONTRIBUTOR'"
+              },
+              "fill":       {"value": "#DBEAFE"},
+              "fontSize":   {"value": 8},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"},
+              "limit":      {"signal": "nodeW - 14"}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":          {"value": 9},
+              "y":          {"value": 44},
+              "text":       {"field": "Name"},
+              "fill":       {"value": "#0F172A"},
+              "fontSize":   {"value": 12},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"},
+              "limit":      {"signal": "nodeW - 16"}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":        {"value": 9},
+              "y":        {"value": 59},
+              "text":     {"field": "Title"},
+              "fill":     {"value": "#334155"},
+              "fontSize": {"value": 10},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "limit":    {"signal": "nodeW - 16"}
+            }
+          }
+        },
+
+        {
+          "type": "rule",
+          "encode": {
+            "update": {
+              "x":           {"value": 9},
+              "x2":          {"signal": "nodeW - 9"},
+              "y":           {"value": 67},
+              "stroke":      {"value": "#E2E8F0"},
+              "strokeWidth": {"value": 0.75}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":         {"value": 9},
+              "y":         {"value": 80},
+              "text":      {"field": "Department"},
+              "fill":      {"value": "#64748B"},
+              "fontSize":  {"value": 9},
+              "fontStyle": {"value": "italic"},
+              "font":      {"value": "Segoe UI, sans-serif"},
+              "limit":     {"signal": "nodeW - 40"}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":          {"signal": "nodeW - 9"},
+              "y":          {"value": 80},
+              "text":       {"field": "Location"},
+              "fill":       {"value": "#94A3B8"},
+              "fontSize":   {"value": 9},
+              "align":      {"value": "right"},
+              "fontStyle":  {"value": "italic"},
+              "font":       {"value": "Segoe UI, sans-serif"},
+              "limit":      {"value": 70}
+            }
+          }
+        }
+
+      ]
+    },
+
+    {
+      "type": "group",
+      "encode": {
+        "enter": {
+          "x":      {"value": 20},
+          "y":      {"signal": "height - 20"},
+          "width":  {"value": 650},
+          "height": {"value": 18}
+        }
+      },
+      "marks": [
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "x": {"value": 0}, "y": {"value": 0},
+              "width": {"value": 12}, "height": {"value": 12},
+              "rx": {"value": 2}, "fill": {"value": "#1E3A5F"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "enter": {
+              "x": {"value": 16}, "y": {"value": 10},
+              "text": {"value": "C-Suite"},
+              "fill": {"value": "#1E3A5F"}, "fontSize": {"value": 9},
+              "fontWeight": {"value": "bold"}
+            }
+          }
+        },
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "x": {"value": 68}, "y": {"value": 0},
+              "width": {"value": 12}, "height": {"value": 12},
+              "rx": {"value": 2}, "fill": {"value": "#1D4ED8"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "enter": {
+              "x": {"value": 84}, "y": {"value": 10},
+              "text": {"value": "VP / SVP"},
+              "fill": {"value": "#1D4ED8"}, "fontSize": {"value": 9},
+              "fontWeight": {"value": "bold"}
+            }
+          }
+        },
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "x": {"value": 152}, "y": {"value": 0},
+              "width": {"value": 12}, "height": {"value": 12},
+              "rx": {"value": 2}, "fill": {"value": "#0284C7"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "enter": {
+              "x": {"value": 168}, "y": {"value": 10},
+              "text": {"value": "Director"},
+              "fill": {"value": "#0284C7"}, "fontSize": {"value": 9},
+              "fontWeight": {"value": "bold"}
+            }
+          }
+        },
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "x": {"value": 228}, "y": {"value": 0},
+              "width": {"value": 12}, "height": {"value": 12},
+              "rx": {"value": 2}, "fill": {"value": "#059669"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "enter": {
+              "x": {"value": 244}, "y": {"value": 10},
+              "text": {"value": "Manager"},
+              "fill": {"value": "#059669"}, "fontSize": {"value": 9},
+              "fontWeight": {"value": "bold"}
+            }
+          }
+        },
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "x": {"value": 306}, "y": {"value": 0},
+              "width": {"value": 12}, "height": {"value": 12},
+              "rx": {"value": 2}, "fill": {"value": "#7C3AED"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "enter": {
+              "x": {"value": 322}, "y": {"value": 10},
+              "text": {"value": "Individual Contributor"},
+              "fill": {"value": "#7C3AED"}, "fontSize": {"value": 9},
+              "fontWeight": {"value": "bold"}
+            }
+          }
+        }
+      ]
+    }
+
+  ]
+}
