@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "Power BI Organization Hierarchy Chart — Deneb Visual. Data is read from Power BI dataset. Interactive: click to select, hover for tooltip.",
+  "description": "Power BI Organization Hierarchy Chart — Deneb Visual. Data read from Power BI dataset. Interactive: click to select, hover for tooltip.",
   "width": 1200,
   "height": 820,
   "padding": {"left": 30, "right": 30, "top": 60, "bottom": 30},
@@ -8,11 +8,11 @@
   "autosize": {"type": "fit", "contains": "padding"},
 
   "signals": [
-    {"name": "nodeW",  "value": 200},
-    {"name": "nodeH",  "value": 98},
-    {"name": "hdrH",   "value": 26},
-    {"name": "gapX",   "value": 20},
-    {"name": "gapY",   "value": 60},
+    {"name": "nodeW", "value": 200},
+    {"name": "nodeH", "value": 98},
+    {"name": "hdrH",  "value": 26},
+    {"name": "gapX",  "value": 20},
+    {"name": "gapY",  "value": 60},
 
     {
       "name": "selectedID",
@@ -55,8 +55,8 @@
         {"type": "treelinks"},
         {
           "type": "linkpath",
-          "orient":  "vertical",
-          "shape":   "orthogonal",
+          "orient": "vertical",
+          "shape": "orthogonal",
           "sourceX": "source.x",
           "sourceY": "source.y",
           "targetX": "target.x",
@@ -72,15 +72,15 @@
       "type": "text",
       "encode": {
         "enter": {
-          "x":        {"signal": "width / 2"},
-          "y":        {"value": -35},
-          "text":     {"value": "Organization Hierarchy"},
-          "align":    {"value": "center"},
-          "baseline": {"value": "top"},
-          "fill":     {"value": "#1E3A5F"},
-          "fontSize": {"value": 22},
+          "x":          {"signal": "width / 2"},
+          "y":          {"value": -35},
+          "text":       {"value": "Organization Hierarchy"},
+          "align":      {"value": "center"},
+          "baseline":   {"value": "top"},
+          "fill":       {"value": "#1E3A5F"},
+          "fontSize":   {"value": 22},
           "fontWeight": {"value": "bold"},
-          "font":     {"value": "Segoe UI, sans-serif"}
+          "font":       {"value": "Segoe UI, sans-serif"}
         }
       }
     },
@@ -105,9 +105,9 @@
       "from": {"data": "links"},
       "encode": {
         "update": {
-          "path":         {"field": "path"},
-          "stroke":       {"value": "#94A3B8"},
-          "strokeWidth":  {"value": 1.5},
+          "path":          {"field": "path"},
+          "stroke":        {"value": "#94A3B8"},
+          "strokeWidth":   {"value": 1.5},
           "strokeOpacity": {"value": 0.75}
         }
       }
@@ -125,7 +125,7 @@
           "height": {"signal": "nodeH"},
           "cursor": {"value": "pointer"},
           "tooltip": {
-            "signal": "{'👤 Name': datum.Name, '💼 Title': datum.Title, '🏢 Dept': datum.Department, '📍 Location': datum.Location, '🔢 Emp ID': datum.EmployeeID, '📊 Org Level': datum.depth + 1}"
+            "signal": "{'Name': datum.Name, 'Title': datum.Title, 'Department': datum.Department, 'Location': datum.Location, 'Employee ID': datum.EmployeeID, 'Org Level': datum.depth + 1}"
           }
         }
       },
@@ -162,10 +162,10 @@
               "height":      {"signal": "nodeH"},
               "fill":        {"value": "#FFFFFF"},
               "stroke": {
-                "signal": "datum.EmployeeID == selectedID ? '#F97316' : '#CBD5E1'"
+                "signal": "parent.EmployeeID == selectedID ? '#F97316' : '#CBD5E1'"
               },
               "strokeWidth": {
-                "signal": "datum.EmployeeID == selectedID ? 3 : 1"
+                "signal": "parent.EmployeeID == selectedID ? 3 : 1"
               }
             },
             "hover": {
@@ -186,7 +186,7 @@
               "rx":     {"value": 8},
               "ry":     {"value": 8},
               "fill": {
-                "signal": "datum.depth === 0 ? '#1E3A5F' : datum.depth === 1 ? '#1D4ED8' : datum.depth === 2 ? '#0284C7' : datum.depth === 3 ? '#059669' : '#7C3AED'"
+                "signal": "parent.depth === 0 ? '#1E3A5F' : parent.depth === 1 ? '#1D4ED8' : parent.depth === 2 ? '#0284C7' : parent.depth === 3 ? '#059669' : '#7C3AED'"
               }
             }
           }
@@ -200,7 +200,7 @@
               "width":  {"signal": "nodeW"},
               "height": {"value": 13},
               "fill": {
-                "signal": "datum.depth === 0 ? '#1E3A5F' : datum.depth === 1 ? '#1D4ED8' : datum.depth === 2 ? '#0284C7' : datum.depth === 3 ? '#059669' : '#7C3AED'"
+                "signal": "parent.depth === 0 ? '#1E3A5F' : parent.depth === 1 ? '#1D4ED8' : parent.depth === 2 ? '#0284C7' : parent.depth === 3 ? '#059669' : '#7C3AED'"
               }
             }
           }
@@ -213,7 +213,7 @@
               "x":          {"value": 9},
               "y":          {"value": 17},
               "text": {
-                "signal": "datum.depth === 0 ? '▸ C-SUITE' : datum.depth === 1 ? '▸ VP / SVP' : datum.depth === 2 ? '▸ DIRECTOR' : datum.depth === 3 ? '▸ MANAGER' : '▸ INDIVIDUAL CONTRIBUTOR'"
+                "signal": "parent.depth === 0 ? '▸ C-SUITE' : parent.depth === 1 ? '▸ VP / SVP' : parent.depth === 2 ? '▸ DIRECTOR' : parent.depth === 3 ? '▸ MANAGER' : '▸ INDIVIDUAL CONTRIBUTOR'"
               },
               "fill":       {"value": "#DBEAFE"},
               "fontSize":   {"value": 8},
@@ -230,7 +230,7 @@
             "update": {
               "x":          {"value": 9},
               "y":          {"value": 44},
-              "text":       {"field": "Name"},
+              "text":       {"signal": "parent.Name"},
               "fill":       {"value": "#0F172A"},
               "fontSize":   {"value": 12},
               "fontWeight": {"value": "bold"},
@@ -246,7 +246,7 @@
             "update": {
               "x":        {"value": 9},
               "y":        {"value": 59},
-              "text":     {"field": "Title"},
+              "text":     {"signal": "parent.Title"},
               "fill":     {"value": "#334155"},
               "fontSize": {"value": 10},
               "font":     {"value": "Segoe UI, sans-serif"},
@@ -274,7 +274,7 @@
             "update": {
               "x":         {"value": 9},
               "y":         {"value": 80},
-              "text":      {"field": "Department"},
+              "text":      {"signal": "parent.Department"},
               "fill":      {"value": "#64748B"},
               "fontSize":  {"value": 9},
               "fontStyle": {"value": "italic"},
@@ -288,15 +288,15 @@
           "type": "text",
           "encode": {
             "update": {
-              "x":          {"signal": "nodeW - 9"},
-              "y":          {"value": 80},
-              "text":       {"field": "Location"},
-              "fill":       {"value": "#94A3B8"},
-              "fontSize":   {"value": 9},
-              "align":      {"value": "right"},
-              "fontStyle":  {"value": "italic"},
-              "font":       {"value": "Segoe UI, sans-serif"},
-              "limit":      {"value": 70}
+              "x":         {"signal": "nodeW - 9"},
+              "y":         {"value": 80},
+              "text":      {"signal": "parent.Location"},
+              "fill":      {"value": "#94A3B8"},
+              "fontSize":  {"value": 9},
+              "align":     {"value": "right"},
+              "fontStyle": {"value": "italic"},
+              "font":      {"value": "Segoe UI, sans-serif"},
+              "limit":     {"value": 70}
             }
           }
         }
@@ -315,111 +315,16 @@
         }
       },
       "marks": [
-        {
-          "type": "rect",
-          "encode": {
-            "enter": {
-              "x": {"value": 0}, "y": {"value": 0},
-              "width": {"value": 12}, "height": {"value": 12},
-              "rx": {"value": 2}, "fill": {"value": "#1E3A5F"}
-            }
-          }
-        },
-        {
-          "type": "text",
-          "encode": {
-            "enter": {
-              "x": {"value": 16}, "y": {"value": 10},
-              "text": {"value": "C-Suite"},
-              "fill": {"value": "#1E3A5F"}, "fontSize": {"value": 9},
-              "fontWeight": {"value": "bold"}
-            }
-          }
-        },
-        {
-          "type": "rect",
-          "encode": {
-            "enter": {
-              "x": {"value": 68}, "y": {"value": 0},
-              "width": {"value": 12}, "height": {"value": 12},
-              "rx": {"value": 2}, "fill": {"value": "#1D4ED8"}
-            }
-          }
-        },
-        {
-          "type": "text",
-          "encode": {
-            "enter": {
-              "x": {"value": 84}, "y": {"value": 10},
-              "text": {"value": "VP / SVP"},
-              "fill": {"value": "#1D4ED8"}, "fontSize": {"value": 9},
-              "fontWeight": {"value": "bold"}
-            }
-          }
-        },
-        {
-          "type": "rect",
-          "encode": {
-            "enter": {
-              "x": {"value": 152}, "y": {"value": 0},
-              "width": {"value": 12}, "height": {"value": 12},
-              "rx": {"value": 2}, "fill": {"value": "#0284C7"}
-            }
-          }
-        },
-        {
-          "type": "text",
-          "encode": {
-            "enter": {
-              "x": {"value": 168}, "y": {"value": 10},
-              "text": {"value": "Director"},
-              "fill": {"value": "#0284C7"}, "fontSize": {"value": 9},
-              "fontWeight": {"value": "bold"}
-            }
-          }
-        },
-        {
-          "type": "rect",
-          "encode": {
-            "enter": {
-              "x": {"value": 228}, "y": {"value": 0},
-              "width": {"value": 12}, "height": {"value": 12},
-              "rx": {"value": 2}, "fill": {"value": "#059669"}
-            }
-          }
-        },
-        {
-          "type": "text",
-          "encode": {
-            "enter": {
-              "x": {"value": 244}, "y": {"value": 10},
-              "text": {"value": "Manager"},
-              "fill": {"value": "#059669"}, "fontSize": {"value": 9},
-              "fontWeight": {"value": "bold"}
-            }
-          }
-        },
-        {
-          "type": "rect",
-          "encode": {
-            "enter": {
-              "x": {"value": 306}, "y": {"value": 0},
-              "width": {"value": 12}, "height": {"value": 12},
-              "rx": {"value": 2}, "fill": {"value": "#7C3AED"}
-            }
-          }
-        },
-        {
-          "type": "text",
-          "encode": {
-            "enter": {
-              "x": {"value": 322}, "y": {"value": 10},
-              "text": {"value": "Individual Contributor"},
-              "fill": {"value": "#7C3AED"}, "fontSize": {"value": 9},
-              "fontWeight": {"value": "bold"}
-            }
-          }
-        }
+        { "type": "rect",   "encode": { "enter": { "x": {"value": 0},   "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#1E3A5F"} } } },
+        { "type": "text",   "encode": { "enter": { "x": {"value": 16},  "y": {"value": 10}, "text": {"value": "C-Suite"},   "fill": {"value": "#1E3A5F"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } },
+        { "type": "rect",   "encode": { "enter": { "x": {"value": 68},  "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#1D4ED8"} } } },
+        { "type": "text",   "encode": { "enter": { "x": {"value": 84},  "y": {"value": 10}, "text": {"value": "VP / SVP"}, "fill": {"value": "#1D4ED8"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } },
+        { "type": "rect",   "encode": { "enter": { "x": {"value": 148}, "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#0284C7"} } } },
+        { "type": "text",   "encode": { "enter": { "x": {"value": 164}, "y": {"value": 10}, "text": {"value": "Director"}, "fill": {"value": "#0284C7"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } },
+        { "type": "rect",   "encode": { "enter": { "x": {"value": 220}, "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#059669"} } } },
+        { "type": "text",   "encode": { "enter": { "x": {"value": 236}, "y": {"value": 10}, "text": {"value": "Manager"},  "fill": {"value": "#059669"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } },
+        { "type": "rect",   "encode": { "enter": { "x": {"value": 296}, "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#7C3AED"} } } },
+        { "type": "text",   "encode": { "enter": { "x": {"value": 312}, "y": {"value": 10}, "text": {"value": "Individual Contributor"}, "fill": {"value": "#7C3AED"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } }
       ]
     }
 

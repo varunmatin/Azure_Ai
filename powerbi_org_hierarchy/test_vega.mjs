@@ -130,7 +130,9 @@ if (lp) {
 section('TEST 6 — Power BI Field References');
 const s = specRaw;
 ['EmployeeID','ManagerID','Name','Title','Department','Location'].forEach(f => {
-  if (s.includes(`"${f}"`)) pass(`Field "${f}" referenced in spec`);
+  // Fields may appear as {"field":"X"}, "parent.X", "datum.X", or just "X" key strings
+  const patterns = [`"${f}"`, `parent.${f}`, `datum.${f}`];
+  if (patterns.some(p => s.includes(p))) pass(`Field "${f}" referenced in spec`);
   else fail(`Field "${f}" NOT found in spec`);
 });
 
