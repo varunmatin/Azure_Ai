@@ -57,10 +57,10 @@
           "type": "linkpath",
           "orient":  "vertical",
           "shape":   "orthogonal",
-          "sourceX": "datum.source.x",
-          "sourceY": "datum.source.y",
-          "targetX": "datum.target.x",
-          "targetY": "datum.target.y"
+          "sourceX": "source.x",
+          "sourceY": "source.y",
+          "targetX": "target.x",
+          "targetY": "target.y"
         }
       ]
     }
