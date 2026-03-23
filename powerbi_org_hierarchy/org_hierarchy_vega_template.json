@@ -166,7 +166,7 @@
           "expr": "'M' + datum.sx + ',' + datum.sy + ' V' + datum.fy + ' H' + datum.tx + ' V' + datum.ty"
         }
       ]
-    },
+    }
   ],
 
   "marks": [
@@ -698,7 +698,7 @@
               "x":           {"value": 12},
               "y":           {"value": 222},
               "width":       {"signal": "panelW - 24"},
-              "height":      {"signal": "(length(selNode['Metric Field'] != null && selNode['Metric Field'] !== '' ? split(replace('' + selNode['Metric Field'], /\\s*,\\s*/g, ','), ',') : ['—']) * 20) + 16"},
+              "height":      {"signal": "(length(selNode['Metric Field'] != null && selNode['Metric Field'] !== '' ? split(replace(replace('' + selNode['Metric Field'], ' ,', ','), ', ', ','), ',') : ['—']) * 20) + 16"},
               "rx":          {"value": 6},
               "fill":        {"signal": "selNode.depth===0?'#1E3A5F':selNode.depth===1?'#EFF6FF':selNode.depth===2?'#F0F9FF':selNode.depth===3?'#ECFDF5':selNode.depth===4?'#F5F3FF':'#EFF6FF'"},
               "stroke":      {"signal": "selNode.depth===0?'#1E3A5F':selNode.depth===1?'#BFDBFE':selNode.depth===2?'#BAE6FD':selNode.depth===3?'#A7F3D0':selNode.depth===4?'#DDD6FE':'#BFDBFE'"},
@@ -713,7 +713,7 @@
             "update": {
               "x":          {"value": 20},
               "y":          {"value": 230},
-              "text":       {"signal": "selNode['Metric Field'] != null && selNode['Metric Field'] !== '' ? split(replace('' + selNode['Metric Field'], /\\s*,\\s*/g, ','), ',') : ['—']"},
+              "text":       {"signal": "selNode['Metric Field'] != null && selNode['Metric Field'] !== '' ? split(replace(replace('' + selNode['Metric Field'], ' ,', ','), ', ', ','), ',') : ['—']"},
               "fill":       {"signal": "selNode.depth===0?'#FFFFFF':selNode.depth===1?'#1D4ED8':selNode.depth===2?'#0284C7':selNode.depth===3?'#059669':selNode.depth===4?'#7C3AED':'#1D4ED8'"},
               "fontSize":   {"value": 11},
               "fontWeight": {"value": "normal"},
