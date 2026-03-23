@@ -8,11 +8,10 @@
   "autosize": {"type": "fit", "contains": "padding"},
 
   "signals": [
-    {"name": "titleH", "value": 50},
+    {"name": "titleH",  "value": 50},
     {"name": "legendH", "value": 20},
-    {"name": "gapX",   "value": 10},
-    {"name": "gapY",   "value": 44},
-    {"name": "hdrH",   "value": 22},
+    {"name": "gapX",    "value": 10},
+    {"name": "hdrH",    "value": 22},
 
     {
       "name": "maxNodesPerLevel",
@@ -22,13 +21,23 @@
       "name": "totalLevels",
       "update": "length(data('levelCounts'))"
     },
+
     {
       "name": "nodeW",
       "update": "max(100, floor((width - (maxNodesPerLevel - 1) * gapX) / maxNodesPerLevel))"
     },
     {
       "name": "nodeH",
-      "update": "max(65, min(95, floor((height - titleH - legendH - (totalLevels - 1) * gapY) / max(totalLevels, 1))))"
+      "update": "max(65, min(95, floor((height - titleH - legendH) / max(totalLevels, 1) - 20)))"
+    },
+
+    {
+      "name": "scaleX",
+      "update": "(width - nodeW) / 1000"
+    },
+    {
+      "name": "scaleY",
+      "update": "(height - titleH - legendH - nodeH) / 1000"
     },
 
     {
@@ -47,19 +56,24 @@
     {
       "name": "dataset"
     },
-
     {
-      "name": "treePrelim",
+      "name": "tree",
       "source": "dataset",
       "transform": [
         {"type": "filter", "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"},
         {"type": "stratify", "key": "EmployeeID", "parentKey": "ManagerID"},
-        {"type": "tree", "method": "tidy", "size": [1000, 1000], "as": ["_x","_y","depth","_ch"]}
+        {
+          "type": "tree",
+          "method": "tidy",
+          "size": [1000, 1000],
+          "separation": false,
+          "as": ["rawX", "rawY", "depth", "children"]
+        }
       ]
     },
     {
       "name": "levelCounts",
-      "source": "treePrelim",
+      "source": "tree",
       "transform": [
         {
           "type": "aggregate",
@@ -75,26 +89,6 @@
         }
       ]
     },
-
-    {
-      "name": "tree",
-      "source": "dataset",
-      "transform": [
-        {"type": "filter", "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"},
-        {"type": "stratify", "key": "EmployeeID", "parentKey": "ManagerID"},
-        {
-          "type": "tree",
-          "method": "tidy",
-          "size": [
-            {"signal": "width - nodeW"},
-            {"signal": "height - titleH - legendH - nodeH"}
-          ],
-          "separation": false,
-          "as": ["rawX", "rawY", "depth", "children"]
-        }
-      ]
-    },
-
     {
       "name": "links",
       "source": "tree",
@@ -102,19 +96,19 @@
         {"type": "treelinks"},
         {
           "type": "formula", "as": "sx",
-          "expr": "datum.source.rawX + nodeW / 2"
+          "expr": "datum.source.rawX * scaleX + nodeW / 2"
         },
         {
           "type": "formula", "as": "sy",
-          "expr": "datum.source.rawY + titleH + nodeH"
+          "expr": "datum.source.rawY * scaleY + titleH + nodeH"
         },
         {
           "type": "formula", "as": "tx",
-          "expr": "datum.target.rawX + nodeW / 2"
+          "expr": "datum.target.rawX * scaleX + nodeW / 2"
         },
         {
           "type": "formula", "as": "ty",
-          "expr": "datum.target.rawY + titleH"
+          "expr": "datum.target.rawY * scaleY + titleH"
         },
         {
           "type": "linkpath",
@@ -134,7 +128,7 @@
     {
       "type": "text",
       "encode": {
-        "enter": {
+        "update": {
           "x":          {"signal": "width / 2"},
           "y":          {"value": 18},
           "text":       {"value": "Organization Hierarchy"},
@@ -149,7 +143,7 @@
     {
       "type": "text",
       "encode": {
-        "enter": {
+        "update": {
           "x":        {"signal": "width / 2"},
           "y":        {"value": 38},
           "text":     {"value": "Click a card to highlight  •  Hover for full details"},
@@ -180,8 +174,8 @@
       "from": {"data": "tree"},
       "encode": {
         "update": {
-          "x":      {"signal": "datum.rawX"},
-          "y":      {"signal": "datum.rawY + titleH"},
+          "x":      {"signal": "datum.rawX * scaleX"},
+          "y":      {"signal": "datum.rawY * scaleY + titleH"},
           "width":  {"signal": "nodeW"},
           "height": {"signal": "nodeH"},
           "cursor": {"value": "pointer"},
@@ -359,7 +353,7 @@
     {
       "type": "group",
       "encode": {
-        "enter": {
+        "update": {
           "x":      {"value": 8},
           "y":      {"signal": "height - legendH + 4"},
           "width":  {"value": 500},

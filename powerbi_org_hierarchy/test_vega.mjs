@@ -148,7 +148,7 @@ const s = specRaw;
 section('TEST 7 — Interactive Signals');
 const signals = spec.signals || [];
 const sigMap = Object.fromEntries(signals.map(s => [s.name, s]));
-['nodeW','nodeH','hdrH','gapX','gapY','selectedID'].forEach(n => {
+['nodeW','nodeH','hdrH','gapX','selectedID'].forEach(n => {
   if (sigMap[n]) {
     const val = sigMap[n].update ?? sigMap[n].value;
     pass(`Signal "${n}" = ${typeof val === 'string' ? '(reactive)' : JSON.stringify(val)}`);
