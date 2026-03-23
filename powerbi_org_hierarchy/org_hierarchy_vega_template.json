@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "Power BI Organization Hierarchy — Deneb Visual. Responsive, edge-anchored connectors, no overlap.",
+  "description": "Power BI Organization Hierarchy — Deneb Visual. Fully responsive; all position math lives in the data pipeline to avoid signal/datum scoping issues in Deneb.",
   "width": 1200,
   "height": 700,
   "padding": {"left": 8, "right": 8, "top": 8, "bottom": 8},
@@ -10,36 +10,8 @@
   "signals": [
     {"name": "titleH",  "value": 50},
     {"name": "legendH", "value": 20},
-    {"name": "gapX",    "value": 10},
     {"name": "hdrH",    "value": 22},
-
-    {
-      "name": "maxNodesPerLevel",
-      "update": "length(data('levelCounts')) > 0 ? data('levelCounts')[0].maxCount : 1"
-    },
-    {
-      "name": "totalLevels",
-      "update": "length(data('levelCounts'))"
-    },
-
-    {
-      "name": "nodeW",
-      "update": "max(100, floor((width - (maxNodesPerLevel - 1) * gapX) / maxNodesPerLevel))"
-    },
-    {
-      "name": "nodeH",
-      "update": "max(65, min(95, floor((height - titleH - legendH) / max(totalLevels, 1) - 20)))"
-    },
-
-    {
-      "name": "scaleX",
-      "update": "(width - nodeW) / 1000"
-    },
-    {
-      "name": "scaleY",
-      "update": "(height - titleH - legendH - nodeH) / 1000"
-    },
-
+    {"name": "gapX",    "value": 10},
     {
       "name": "selectedID",
       "value": "",
@@ -60,32 +32,67 @@
       "name": "tree",
       "source": "dataset",
       "transform": [
-        {"type": "filter", "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"},
-        {"type": "stratify", "key": "EmployeeID", "parentKey": "ManagerID"},
+        {
+          "type": "filter",
+          "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"
+        },
+        {
+          "type": "stratify",
+          "key": "EmployeeID",
+          "parentKey": "ManagerID"
+        },
         {
           "type": "tree",
           "method": "tidy",
           "size": [1000, 1000],
           "separation": false,
           "as": ["rawX", "rawY", "depth", "children"]
-        }
-      ]
-    },
-    {
-      "name": "levelCounts",
-      "source": "tree",
-      "transform": [
+        },
+
         {
-          "type": "aggregate",
+          "type": "joinaggregate",
           "groupby": ["depth"],
           "ops": ["count"],
-          "as": ["nodeCount"]
+          "as": ["levelCount"]
         },
         {
           "type": "joinaggregate",
-          "ops": ["max"],
-          "fields": ["nodeCount"],
-          "as": ["maxCount"]
+          "ops": ["max", "max"],
+          "fields": ["levelCount", "depth"],
+          "as": ["maxLevelCount", "maxDepth"]
+        },
+
+        {
+          "type": "formula",
+          "as": "nodeW",
+          "expr": "max(100, floor((width - (datum.maxLevelCount - 1) * gapX) / datum.maxLevelCount))"
+        },
+        {
+          "type": "formula",
+          "as": "nodeH",
+          "expr": "max(65, min(95, floor((height - titleH - legendH) / max(datum.maxDepth + 1, 1) - 20)))"
+        },
+
+        {
+          "type": "formula",
+          "as": "scaleX",
+          "expr": "(width - datum.nodeW) / 1000"
+        },
+        {
+          "type": "formula",
+          "as": "scaleY",
+          "expr": "(height - titleH - legendH - datum.nodeH) / 1000"
+        },
+
+        {
+          "type": "formula",
+          "as": "displayX",
+          "expr": "datum.rawX * datum.scaleX"
+        },
+        {
+          "type": "formula",
+          "as": "displayY",
+          "expr": "datum.rawY * datum.scaleY + titleH"
         }
       ]
     },
@@ -96,19 +103,19 @@
         {"type": "treelinks"},
         {
           "type": "formula", "as": "sx",
-          "expr": "datum.source.rawX * scaleX + nodeW / 2"
+          "expr": "datum.source.displayX + datum.source.nodeW / 2"
         },
         {
           "type": "formula", "as": "sy",
-          "expr": "datum.source.rawY * scaleY + titleH + nodeH"
+          "expr": "datum.source.displayY + datum.source.nodeH"
         },
         {
           "type": "formula", "as": "tx",
-          "expr": "datum.target.rawX * scaleX + nodeW / 2"
+          "expr": "datum.target.displayX + datum.target.nodeW / 2"
         },
         {
           "type": "formula", "as": "ty",
-          "expr": "datum.target.rawY * scaleY + titleH"
+          "expr": "datum.target.displayY"
         },
         {
           "type": "linkpath",
@@ -174,10 +181,10 @@
       "from": {"data": "tree"},
       "encode": {
         "update": {
-          "x":      {"signal": "datum.rawX * scaleX"},
-          "y":      {"signal": "datum.rawY * scaleY + titleH"},
-          "width":  {"signal": "nodeW"},
-          "height": {"signal": "nodeH"},
+          "x":      {"field": "displayX"},
+          "y":      {"field": "displayY"},
+          "width":  {"field": "nodeW"},
+          "height": {"field": "nodeH"},
           "cursor": {"value": "pointer"},
           "tooltip": {
             "signal": "{'Name': datum.Name, 'Title': datum.Title, 'Department': datum.Department, 'Location': datum.Location, 'Employee ID': datum.EmployeeID, 'Level': datum.depth + 1}"
@@ -196,8 +203,8 @@
               "fill": {"value": "#00000015"}
             },
             "update": {
-              "width":  {"signal": "nodeW"},
-              "height": {"signal": "nodeH"}
+              "width":  {"signal": "parent.nodeW"},
+              "height": {"signal": "parent.nodeH"}
             }
           }
         },
@@ -211,8 +218,8 @@
               "rx": {"value": 7}
             },
             "update": {
-              "width":       {"signal": "nodeW"},
-              "height":      {"signal": "nodeH"},
+              "width":       {"signal": "parent.nodeW"},
+              "height":      {"signal": "parent.nodeH"},
               "fill":        {"value": "#FFFFFF"},
               "stroke":      {"signal": "parent.EmployeeID == selectedID ? '#F97316' : '#CBD5E1'"},
               "strokeWidth": {"signal": "parent.EmployeeID == selectedID ? 2.5 : 1"}
@@ -233,7 +240,7 @@
               "rx": {"value": 7}
             },
             "update": {
-              "width":  {"signal": "nodeW"},
+              "width":  {"signal": "parent.nodeW"},
               "height": {"signal": "hdrH"},
               "fill":   {"signal": "parent.depth===0?'#1E3A5F':parent.depth===1?'#1D4ED8':parent.depth===2?'#0284C7':parent.depth===3?'#059669':'#7C3AED'"}
             }
@@ -247,7 +254,7 @@
               "y": {"value": 15}
             },
             "update": {
-              "width":  {"signal": "nodeW"},
+              "width":  {"signal": "parent.nodeW"},
               "height": {"value": 7},
               "fill":   {"signal": "parent.depth===0?'#1E3A5F':parent.depth===1?'#1D4ED8':parent.depth===2?'#0284C7':parent.depth===3?'#059669':'#7C3AED'"}
             }
@@ -265,7 +272,7 @@
               "fontSize":   {"value": 7},
               "fontWeight": {"value": "bold"},
               "font":       {"value": "Segoe UI, sans-serif"},
-              "limit":      {"signal": "nodeW - 10"}
+              "limit":      {"signal": "parent.nodeW - 10"}
             }
           }
         },
@@ -278,10 +285,10 @@
               "y":          {"signal": "hdrH + 14"},
               "text":       {"signal": "parent.Name"},
               "fill":       {"value": "#0F172A"},
-              "fontSize":   {"signal": "nodeW < 130 ? 9 : 11"},
+              "fontSize":   {"signal": "parent.nodeW < 130 ? 9 : 11"},
               "fontWeight": {"value": "bold"},
               "font":       {"value": "Segoe UI, sans-serif"},
-              "limit":      {"signal": "nodeW - 10"}
+              "limit":      {"signal": "parent.nodeW - 10"}
             }
           }
         },
@@ -294,9 +301,9 @@
               "y":        {"signal": "hdrH + 28"},
               "text":     {"signal": "parent.Title"},
               "fill":     {"value": "#334155"},
-              "fontSize": {"signal": "nodeW < 130 ? 7 : 9"},
+              "fontSize": {"signal": "parent.nodeW < 130 ? 7 : 9"},
               "font":     {"value": "Segoe UI, sans-serif"},
-              "limit":    {"signal": "nodeW - 10"}
+              "limit":    {"signal": "parent.nodeW - 10"}
             }
           }
         },
@@ -306,7 +313,7 @@
           "encode": {
             "update": {
               "x":           {"value": 6},
-              "x2":          {"signal": "nodeW - 6"},
+              "x2":          {"signal": "parent.nodeW - 6"},
               "y":           {"signal": "hdrH + 38"},
               "stroke":      {"value": "#E2E8F0"},
               "strokeWidth": {"value": 0.75}
@@ -325,7 +332,7 @@
               "fontSize":  {"value": 8},
               "fontStyle": {"value": "italic"},
               "font":      {"value": "Segoe UI, sans-serif"},
-              "limit":     {"signal": "nodeW - 58"}
+              "limit":     {"signal": "parent.nodeW - 58"}
             }
           }
         },
@@ -334,7 +341,7 @@
           "type": "text",
           "encode": {
             "update": {
-              "x":         {"signal": "nodeW - 6"},
+              "x":         {"signal": "parent.nodeW - 6"},
               "y":         {"signal": "hdrH + 52"},
               "text":      {"signal": "parent.Location"},
               "fill":      {"value": "#94A3B8"},

@@ -148,12 +148,24 @@ const s = specRaw;
 section('TEST 7 — Interactive Signals');
 const signals = spec.signals || [];
 const sigMap = Object.fromEntries(signals.map(s => [s.name, s]));
-['nodeW','nodeH','hdrH','gapX','selectedID'].forEach(n => {
+['hdrH','gapX','selectedID'].forEach(n => {
   if (sigMap[n]) {
     const val = sigMap[n].update ?? sigMap[n].value;
     pass(`Signal "${n}" = ${typeof val === 'string' ? '(reactive)' : JSON.stringify(val)}`);
   } else fail(`Signal "${n}" MISSING`);
 });
+// nodeW and nodeH must be data pipeline formula transforms, NOT signals
+// (using datum in signal encode channels is invalid Vega 5 — causes Deneb overlap)
+const treeData = (spec.data || []).find(d => d.name === 'tree');
+const treeTransforms = treeData?.transform || [];
+const formulaNames = treeTransforms.filter(t => t.type === 'formula').map(t => t.as);
+['nodeW','nodeH','displayX','displayY','scaleX','scaleY'].forEach(f => {
+  if (formulaNames.includes(f))
+    pass(`"${f}" computed as data formula transform (correct — avoids datum-in-signal bug)`);
+  else
+    fail(`"${f}" NOT found as formula in tree pipeline — nodes may overlap in Deneb`);
+});
+
 const sel = sigMap['selectedID'];
 if (sel?.on?.length > 0 && sel.on[0].events?.includes('click'))
   pass('selectedID click handler configured — card selection is interactive');
