@@ -123,19 +123,19 @@
         {"type": "treelinks"},
         {
           "type": "formula", "as": "sx",
-          "expr": "datum.source.displayX + datum.source.nodeW / 2"
+          "expr": "datum.source.rawX * (width - datum.source.nodeW) / 1000 + datum.source.nodeW / 2"
         },
         {
           "type": "formula", "as": "sy",
-          "expr": "datum.source.displayY + datum.source.nodeH"
+          "expr": "datum.source.rawY * (height - titleH - legendH - datum.source.nodeH) / 1000 + titleH + datum.source.nodeH"
         },
         {
           "type": "formula", "as": "tx",
-          "expr": "datum.target.displayX + datum.target.nodeW / 2"
+          "expr": "datum.target.rawX * (width - datum.target.nodeW) / 1000 + datum.target.nodeW / 2"
         },
         {
           "type": "formula", "as": "ty",
-          "expr": "datum.target.displayY"
+          "expr": "datum.target.rawY * (height - titleH - legendH - datum.target.nodeH) / 1000 + titleH"
         },
         {
           "type": "formula", "as": "fy",
