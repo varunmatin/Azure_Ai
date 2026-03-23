@@ -37,8 +37,8 @@
       "value": {},
       "on": [
         {
-          "events": {"signal": "selectedID"},
-          "update": "selectedID !== '' ? (length(data('selectedNode')) > 0 ? data('selectedNode')[0] : {}) : {}"
+          "events": {"type": "click", "markname": "nodeHitArea"},
+          "update": "datum"
         }
       ]
     }
@@ -167,16 +167,6 @@
         }
       ]
     },
-    {
-      "name": "selectedNode",
-      "source": "tree",
-      "transform": [
-        {
-          "type": "filter",
-          "expr": "datum.EmployeeID === selectedID"
-        }
-      ]
-    }
   ],
 
   "marks": [
