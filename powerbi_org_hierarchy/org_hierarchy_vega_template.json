@@ -30,13 +30,7 @@
     },
     {
       "name": "panelX",
-      "update": "panelTarget",
-      "on": [
-        {
-          "events": {"type": "timer", "throttle": 16},
-          "update": "abs(panelX - panelTarget) < 0.5 ? panelTarget : panelX + (panelTarget - panelX) * 0.28"
-        }
-      ]
+      "update": "panelTarget"
     },
     {
       "name": "selNode",
