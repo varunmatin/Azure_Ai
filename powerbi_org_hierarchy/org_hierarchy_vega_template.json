@@ -22,6 +22,25 @@
           "update": "datum.EmployeeID != selectedID ? datum.EmployeeID : ''"
         }
       ]
+    },
+    {"name": "panelW", "value": 240},
+    {
+      "name": "panelTarget",
+      "update": "selectedID != '' ? width - panelW : width"
+    },
+    {
+      "name": "panelX",
+      "update": "panelTarget",
+      "on": [
+        {
+          "events": {"type": "timer", "throttle": 16},
+          "update": "abs(panelX - panelTarget) < 0.5 ? panelTarget : panelX + (panelTarget - panelX) * 0.28"
+        }
+      ]
+    },
+    {
+      "name": "selNode",
+      "update": "length(data('selectedNode')) > 0 ? data('selectedNode')[0] : {}"
     }
   ],
 
@@ -147,6 +166,16 @@
           "expr": "'M' + datum.sx + ',' + datum.sy + ' V' + datum.fy + ' H' + datum.tx + ' V' + datum.ty"
         }
       ]
+    },
+    {
+      "name": "selectedNode",
+      "source": "tree",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.EmployeeID === selectedID"
+        }
+      ]
     }
   ],
 
@@ -173,7 +202,7 @@
         "update": {
           "x":        {"signal": "width / 2"},
           "y":        {"value": 38},
-          "text":     {"value": "Click a card to highlight  •  Hover for full details"},
+          "text":     {"value": "Click a card to view details  •  Click again to close"},
           "align":    {"value": "center"},
           "fill":     {"value": "#64748B"},
           "fontSize": {"value": 10},
@@ -207,7 +236,7 @@
           "height": {"field": "nodeH"},
           "cursor": {"value": "pointer"},
           "tooltip": {
-            "signal": "{'Name': datum.Name, 'Title': datum.Title, 'Department': datum.Department, 'Location': datum.Location, 'Employee ID': datum.EmployeeID, 'Level': datum.depth + 1}"
+            "signal": "{'Name': datum.Name, 'Title': datum.Title, 'Department': datum.Department, 'Location': datum.Location, 'Employee ID': datum.EmployeeID, 'Metric Field': datum['Metric Field'], 'Level': datum.depth + 1}"
           }
         }
       },
@@ -398,6 +427,291 @@
         {"type":"text","encode":{"enter":{"x":{"value":205},"y":{"value":9},"text":{"value":"Manager"},"fill":{"value":"#059669"},"fontSize":{"value":8},"fontWeight":{"value":"bold"},"font":{"value":"Segoe UI, sans-serif"}}}},
         {"type":"rect","encode":{"enter":{"x":{"value":256},"y":{"value":0},"width":{"value":10},"height":{"value":10},"rx":{"value":2},"fill":{"value":"#7C3AED"}}}},
         {"type":"text","encode":{"enter":{"x":{"value":269},"y":{"value":9},"text":{"value":"Individual Contributor"},"fill":{"value":"#7C3AED"},"fontSize":{"value":8},"fontWeight":{"value":"bold"},"font":{"value":"Segoe UI, sans-serif"}}}}
+      ]
+    },
+
+    {
+      "name": "detailPanel",
+      "type": "group",
+      "encode": {
+        "update": {
+          "x":      {"signal": "panelX"},
+          "y":      {"value": 0},
+          "width":  {"signal": "panelW"},
+          "height": {"signal": "height"},
+          "clip":   {"value": true}
+        }
+      },
+      "marks": [
+
+        {
+          "type": "rect",
+          "encode": {
+            "update": {
+              "x":           {"value": 0},
+              "y":           {"value": 0},
+              "width":       {"signal": "panelW"},
+              "height":      {"signal": "height"},
+              "fill":        {"value": "#F8FAFC"},
+              "stroke":      {"value": "#CBD5E1"},
+              "strokeWidth": {"value": 1},
+              "cornerRadius": {"value": 0}
+            }
+          }
+        },
+
+        {
+          "type": "rect",
+          "encode": {
+            "update": {
+              "x":      {"value": 0},
+              "y":      {"value": 0},
+              "width":  {"signal": "panelW"},
+              "height": {"value": 64},
+              "fill":   {"signal": "selNode.depth===0?'#1E3A5F':selNode.depth===1?'#1D4ED8':selNode.depth===2?'#0284C7':selNode.depth===3?'#059669':selNode.depth===4?'#7C3AED':'#1E3A5F'"}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":          {"value": 12},
+              "y":          {"value": 16},
+              "text":       {"signal": "selNode.depth===0?'▸ C-SUITE':selNode.depth===1?'▸ VP / SVP':selNode.depth===2?'▸ DIRECTOR':selNode.depth===3?'▸ MANAGER':selNode.depth===4?'▸ IC':'▸ EMPLOYEE'"},
+              "fill":       {"value": "#DBEAFE"},
+              "fontSize":   {"value": 8},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"},
+              "limit":      {"signal": "panelW - 40"}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":          {"signal": "panelW - 10"},
+              "y":          {"value": 16},
+              "text":       {"value": "✕"},
+              "fill":       {"value": "#93C5FD"},
+              "fontSize":   {"value": 11},
+              "align":      {"value": "right"},
+              "font":       {"value": "Segoe UI, sans-serif"},
+              "cursor":     {"value": "pointer"},
+              "tooltip":    {"value": "Click node again to close"}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":          {"value": 12},
+              "y":          {"value": 34},
+              "text":       {"signal": "selNode.Name || ''"},
+              "fill":       {"value": "#FFFFFF"},
+              "fontSize":   {"value": 13},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"},
+              "limit":      {"signal": "panelW - 20"}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":        {"value": 12},
+              "y":        {"value": 52},
+              "text":     {"signal": "selNode.Title || ''"},
+              "fill":     {"value": "#BFDBFE"},
+              "fontSize": {"value": 9},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "limit":    {"signal": "panelW - 20"}
+            }
+          }
+        },
+
+        {
+          "type": "rule",
+          "encode": {
+            "update": {
+              "x":           {"value": 12},
+              "x2":          {"signal": "panelW - 12"},
+              "y":           {"value": 76},
+              "stroke":      {"value": "#E2E8F0"},
+              "strokeWidth": {"value": 0.75}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":        {"value": 12},
+              "y":        {"value": 94},
+              "text":     {"value": "EMPLOYEE ID"},
+              "fill":     {"value": "#94A3B8"},
+              "fontSize": {"value": 8},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "fontWeight": {"value": "bold"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":        {"value": 12},
+              "y":        {"value": 108},
+              "text":     {"signal": "selNode.EmployeeID || ''"},
+              "fill":     {"value": "#334155"},
+              "fontSize": {"value": 11},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "fontWeight": {"value": "bold"},
+              "limit":    {"signal": "panelW - 20"}
+            }
+          }
+        },
+
+        {
+          "type": "rule",
+          "encode": {
+            "update": {
+              "x":           {"value": 12},
+              "x2":          {"signal": "panelW - 12"},
+              "y":           {"value": 120},
+              "stroke":      {"value": "#E2E8F0"},
+              "strokeWidth": {"value": 0.75}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":        {"value": 12},
+              "y":        {"value": 136},
+              "text":     {"value": "DEPARTMENT"},
+              "fill":     {"value": "#94A3B8"},
+              "fontSize": {"value": 8},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "fontWeight": {"value": "bold"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":        {"value": 12},
+              "y":        {"value": 150},
+              "text":     {"signal": "selNode.Department || ''"},
+              "fill":     {"value": "#334155"},
+              "fontSize": {"value": 10},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "limit":    {"signal": "panelW - 20"}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":        {"value": 12},
+              "y":        {"value": 170},
+              "text":     {"value": "LOCATION"},
+              "fill":     {"value": "#94A3B8"},
+              "fontSize": {"value": 8},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "fontWeight": {"value": "bold"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":        {"value": 12},
+              "y":        {"value": 184},
+              "text":     {"signal": "selNode.Location || ''"},
+              "fill":     {"value": "#334155"},
+              "fontSize": {"value": 10},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "limit":    {"signal": "panelW - 20"}
+            }
+          }
+        },
+
+        {
+          "type": "rule",
+          "encode": {
+            "update": {
+              "x":           {"value": 12},
+              "x2":          {"signal": "panelW - 12"},
+              "y":           {"value": 198},
+              "stroke":      {"value": "#CBD5E1"},
+              "strokeWidth": {"value": 1}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":          {"value": 12},
+              "y":          {"value": 214},
+              "text":       {"value": "METRIC FIELD"},
+              "fill":       {"value": "#64748B"},
+              "fontSize":   {"value": 9},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        },
+
+        {
+          "type": "rect",
+          "encode": {
+            "update": {
+              "x":           {"value": 12},
+              "y":           {"value": 222},
+              "width":       {"signal": "panelW - 24"},
+              "height":      {"value": 52},
+              "rx":          {"value": 6},
+              "fill":        {"signal": "selNode.depth===0?'#1E3A5F':selNode.depth===1?'#EFF6FF':selNode.depth===2?'#F0F9FF':selNode.depth===3?'#ECFDF5':selNode.depth===4?'#F5F3FF':'#EFF6FF'"},
+              "stroke":      {"signal": "selNode.depth===0?'#1E3A5F':selNode.depth===1?'#BFDBFE':selNode.depth===2?'#BAE6FD':selNode.depth===3?'#A7F3D0':selNode.depth===4?'#DDD6FE':'#BFDBFE'"},
+              "strokeWidth": {"value": 1}
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x":          {"signal": "panelW / 2"},
+              "y":          {"value": 258},
+              "text":       {"signal": "selNode['Metric Field'] != null && selNode['Metric Field'] !== '' ? '' + selNode['Metric Field'] : '—'"},
+              "fill":       {"signal": "selNode.depth===0?'#FFFFFF':selNode.depth===1?'#1D4ED8':selNode.depth===2?'#0284C7':selNode.depth===3?'#059669':selNode.depth===4?'#7C3AED':'#1D4ED8'"},
+              "fontSize":   {"value": 28},
+              "fontWeight": {"value": "bold"},
+              "align":      {"value": "center"},
+              "baseline":   {"value": "alphabetic"},
+              "font":       {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        }
+
       ]
     }
 
