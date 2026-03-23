@@ -34,7 +34,13 @@
     },
     {
       "name": "selNode",
-      "update": "length(data('selectedNode')) > 0 ? data('selectedNode')[0] : {}"
+      "value": {},
+      "on": [
+        {
+          "events": {"signal": "selectedID"},
+          "update": "selectedID !== '' ? (length(data('selectedNode')) > 0 ? data('selectedNode')[0] : {}) : {}"
+        }
+      ]
     }
   ],
 
