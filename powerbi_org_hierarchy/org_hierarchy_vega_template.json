@@ -13,6 +13,7 @@
     {"name": "hdrH",  "value": 26},
     {"name": "gapX",  "value": 20},
     {"name": "gapY",  "value": 60},
+    {"name": "rowCount", "update": "length(data('dataset'))"},
 
     {
       "name": "selectedID",
@@ -34,6 +35,10 @@
       "name": "tree",
       "source": "dataset",
       "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"
+        },
         {
           "type": "stratify",
           "key": "EmployeeID",
@@ -325,6 +330,71 @@
         { "type": "text",   "encode": { "enter": { "x": {"value": 236}, "y": {"value": 10}, "text": {"value": "Manager"},  "fill": {"value": "#059669"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } },
         { "type": "rect",   "encode": { "enter": { "x": {"value": 296}, "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#7C3AED"} } } },
         { "type": "text",   "encode": { "enter": { "x": {"value": 312}, "y": {"value": 10}, "text": {"value": "Individual Contributor"}, "fill": {"value": "#7C3AED"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } }
+      ]
+    }
+
+  ,
+
+    {
+      "type": "group",
+      "encode": {
+        "update": {
+          "x":       {"signal": "width / 2 - 230"},
+          "y":       {"signal": "height / 2 - 60"},
+          "width":   {"value": 460},
+          "height":  {"value": 120},
+          "opacity": {"signal": "rowCount === 0 ? 1 : 0"}
+        }
+      },
+      "marks": [
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "x": {"value": 0}, "y": {"value": 0},
+              "width": {"value": 460}, "height": {"value": 120},
+              "rx": {"value": 12}, "ry": {"value": 12},
+              "fill": {"value": "#FFFFFF"},
+              "stroke": {"value": "#CBD5E1"}, "strokeWidth": {"value": 1.5}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "enter": {
+              "x": {"value": 230}, "y": {"value": 38},
+              "text": {"value": "No data connected"},
+              "align": {"value": "center"}, "baseline": {"value": "top"},
+              "fill": {"value": "#1E3A5F"}, "fontSize": {"value": 18},
+              "fontWeight": {"value": "bold"}, "font": {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "enter": {
+              "x": {"value": 230}, "y": {"value": 66},
+              "text": {"value": "Drag all 6 fields into the Deneb Values well:"},
+              "align": {"value": "center"}, "baseline": {"value": "top"},
+              "fill": {"value": "#64748B"}, "fontSize": {"value": 12},
+              "font": {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "encode": {
+            "enter": {
+              "x": {"value": 230}, "y": {"value": 86},
+              "text": {"value": "EmployeeID · ManagerID · Name · Title · Department · Location"},
+              "align": {"value": "center"}, "baseline": {"value": "top"},
+              "fill": {"value": "#0284C7"}, "fontSize": {"value": 11},
+              "fontWeight": {"value": "bold"}, "font": {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        }
       ]
     }
 
