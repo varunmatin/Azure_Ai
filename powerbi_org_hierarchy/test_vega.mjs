@@ -108,31 +108,32 @@ if (treeT) {
   else warn('  separation not set — sibling nodes may overlap');
 } else fail('tree layout transform MISSING');
 
-// ── TEST 5: Linkpath field references ──────────────────────────────────────
-section('TEST 5 — Linkpath Transform Field References');
+// ── TEST 5: Connector path generation ──────────────────────────────────────
+section('TEST 5 — Connector Path Generation');
 const linksDS = spec.data.find(d => d.name === 'links');
-const lp = linksDS?.transform?.find(t => t.type === 'linkpath');
-if (lp) {
-  pass('linkpath transform present');
-  // linkpath can use either bare dot-path refs (source.x) or pre-computed formula fields (sx/sy/tx/ty)
-  const formulaFields = linksDS?.transform?.filter(t => t.type === 'formula').map(t => t.as) || [];
-  const allowedX = ['source.x', ...formulaFields];
-  const allowedY = ['source.y', 'target.y', ...formulaFields];
-  ['sourceX','targetX'].forEach(p => {
-    const v = lp[p];
-    if (allowedX.includes(v) || allowedX.some(f => f === v)) pass(`  ${p} = "${v}" ✓`);
-    else if (v?.startsWith('datum.')) fail(`  ${p} = "${v}" — invalid "datum." prefix`);
-    else pass(`  ${p} = "${v}" (formula field) ✓`);
-  });
-  ['sourceY','targetY'].forEach(p => {
-    const v = lp[p];
-    if (allowedY.includes(v) || formulaFields.includes(v)) pass(`  ${p} = "${v}" ✓`);
-    else if (v?.startsWith('datum.')) fail(`  ${p} = "${v}" — invalid "datum." prefix`);
-    else pass(`  ${p} = "${v}" (formula field) ✓`);
-  });
-  if (lp.orient === 'vertical')  pass(`  orient = "vertical" (top-down tree) ✓`);
-  if (lp.shape  === 'orthogonal') pass(`  shape = "orthogonal" (right-angle connectors) ✓`);
-} else fail('linkpath transform MISSING');
+const linkFormulas = linksDS?.transform?.filter(t => t.type === 'formula').map(t => t.as) || [];
+const hasTreelinks = linksDS?.transform?.some(t => t.type === 'treelinks');
+if (hasTreelinks) pass('treelinks transform present — parent-child pairs generated');
+else fail('treelinks transform MISSING');
+
+const hasPath = linkFormulas.includes('path');
+if (hasPath) {
+  pass('Custom "path" formula present — hand-computed SVG path for T-joint connectors');
+  const pathFormula = linksDS.transform.find(t => t.type === 'formula' && t.as === 'path');
+  // Must contain M, V, H, V commands for stem → fork → bar → drop
+  const expr = pathFormula?.expr || '';
+  if (/['"]\s*M/.test(expr) && / V/.test(expr) && / H/.test(expr))
+    pass('  Path expr uses M/V/H commands for right-angle T-joint connectors ✓');
+  else
+    fail('  Path expr missing expected M/V/H SVG commands for T-joint connectors');
+  // Must reference fork-Y midpoint (fy) and both sx/tx, sy/ty
+  if (linkFormulas.includes('fy'))
+    pass('  Fork-Y midpoint (fy) computed — sibling connectors share horizontal bar ✓');
+  else
+    fail('  Fork-Y midpoint (fy) MISSING — T-joint requires midpoint between parent and children');
+} else {
+  fail('Custom path formula MISSING — links will not render as T-joint connectors');
+}
 
 // ── TEST 6: Field references in spec ──────────────────────────────────────
 section('TEST 6 — Power BI Field References');
@@ -326,8 +327,8 @@ if (!specStr.includes('"hardcoded"') && !specStr.includes("'hardcoded'"))
 if (spec.autosize) pass(`autosize set to "${JSON.stringify(spec.autosize)}" — visual will fit container`);
 else warn('autosize not set — visual may not resize with Power BI container');
 
-const hasDatumPrefix = /linkpath[^}]*datum\.(source|target)/s.test(specStr);
-if (!hasDatumPrefix) pass('No "datum." prefix in linkpath fields — Vega field refs are correct');
+const hasLinkpathDatumBug = /linkpath[^}]*datum\.(source|target)/s.test(specStr);
+if (!hasLinkpathDatumBug) pass('No linkpath/datum prefix bug — connector field refs are correct');
 else fail('Found "datum." prefix in linkpath fields — must use bare dot-path (e.g. "source.x")');
 
 if (spec.background) pass(`Background color set: "${spec.background}"`);

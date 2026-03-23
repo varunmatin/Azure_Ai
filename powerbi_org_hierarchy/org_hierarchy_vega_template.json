@@ -138,13 +138,12 @@
           "expr": "datum.target.displayY"
         },
         {
-          "type": "linkpath",
-          "orient": "vertical",
-          "shape": "orthogonal",
-          "sourceX": "sx",
-          "sourceY": "sy",
-          "targetX": "tx",
-          "targetY": "ty"
+          "type": "formula", "as": "fy",
+          "expr": "(datum.sy + datum.ty) / 2"
+        },
+        {
+          "type": "formula", "as": "path",
+          "expr": "'M' + datum.sx + ',' + datum.sy + ' V' + datum.fy + ' H' + datum.tx + ' V' + datum.ty"
         }
       ]
     }
