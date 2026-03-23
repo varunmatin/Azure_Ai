@@ -63,9 +63,29 @@
         },
 
         {
+          "type": "window",
+          "sort": {"field": "rawX", "order": "ascending"},
+          "groupby": ["depth"],
+          "ops": ["lag"],
+          "fields": ["rawX"],
+          "as": ["prevRawX"]
+        },
+        {
+          "type": "formula",
+          "as": "rawXGap",
+          "expr": "datum.prevRawX != null ? datum.rawX - datum.prevRawX : null"
+        },
+        {
+          "type": "joinaggregate",
+          "ops": ["min"],
+          "fields": ["rawXGap"],
+          "as": ["minRawXGap"]
+        },
+
+        {
           "type": "formula",
           "as": "nodeW",
-          "expr": "floor((width - (datum.maxLevelCount - 1) * gapX) / datum.maxLevelCount)"
+          "expr": "datum.minRawXGap > 0 ? max(20, floor((datum.minRawXGap * width - gapX * 1000) / (1000 + datum.minRawXGap))) : max(20, floor(width / max(datum.maxLevelCount, 1)))"
         },
         {
           "type": "formula",
