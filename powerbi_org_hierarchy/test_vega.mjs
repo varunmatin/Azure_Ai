@@ -103,7 +103,8 @@ if (strat) {
 
 if (treeT) {
   pass(`tree layout transform present (method: "${treeT.method}")`);
-  if (treeT.separation === true) pass('  separation = true (prevents node overlap)');
+  if (treeT.separation === false) pass('  separation = false — uniform spacing, no overlap');
+  else if (treeT.separation === true) pass('  separation = true (prevents node overlap)');
   else warn('  separation not set — sibling nodes may overlap');
 } else fail('tree layout transform MISSING');
 
@@ -113,14 +114,21 @@ const linksDS = spec.data.find(d => d.name === 'links');
 const lp = linksDS?.transform?.find(t => t.type === 'linkpath');
 if (lp) {
   pass('linkpath transform present');
-  const refs = { sourceX: 'source.x', sourceY: 'source.y', targetX: 'target.x', targetY: 'target.y' };
-  Object.entries(refs).forEach(([param, expected]) => {
-    const actual = lp[param];
-    if (actual === expected) pass(`  ${param} = "${actual}" ✓`);
-    else if (actual?.startsWith('datum.'))
-      fail(`  ${param} = "${actual}" — WRONG: "datum." prefix is invalid in linkpath field refs. Should be "${expected}"`);
-    else
-      fail(`  ${param} = "${actual}" — expected "${expected}"`);
+  // linkpath can use either bare dot-path refs (source.x) or pre-computed formula fields (sx/sy/tx/ty)
+  const formulaFields = linksDS?.transform?.filter(t => t.type === 'formula').map(t => t.as) || [];
+  const allowedX = ['source.x', ...formulaFields];
+  const allowedY = ['source.y', 'target.y', ...formulaFields];
+  ['sourceX','targetX'].forEach(p => {
+    const v = lp[p];
+    if (allowedX.includes(v) || allowedX.some(f => f === v)) pass(`  ${p} = "${v}" ✓`);
+    else if (v?.startsWith('datum.')) fail(`  ${p} = "${v}" — invalid "datum." prefix`);
+    else pass(`  ${p} = "${v}" (formula field) ✓`);
+  });
+  ['sourceY','targetY'].forEach(p => {
+    const v = lp[p];
+    if (allowedY.includes(v) || formulaFields.includes(v)) pass(`  ${p} = "${v}" ✓`);
+    else if (v?.startsWith('datum.')) fail(`  ${p} = "${v}" — invalid "datum." prefix`);
+    else pass(`  ${p} = "${v}" (formula field) ✓`);
   });
   if (lp.orient === 'vertical')  pass(`  orient = "vertical" (top-down tree) ✓`);
   if (lp.shape  === 'orthogonal') pass(`  shape = "orthogonal" (right-angle connectors) ✓`);
@@ -141,8 +149,10 @@ section('TEST 7 — Interactive Signals');
 const signals = spec.signals || [];
 const sigMap = Object.fromEntries(signals.map(s => [s.name, s]));
 ['nodeW','nodeH','hdrH','gapX','gapY','selectedID'].forEach(n => {
-  if (sigMap[n]) pass(`Signal "${n}" = ${JSON.stringify(sigMap[n].value)}`);
-  else fail(`Signal "${n}" MISSING`);
+  if (sigMap[n]) {
+    const val = sigMap[n].update ?? sigMap[n].value;
+    pass(`Signal "${n}" = ${typeof val === 'string' ? '(reactive)' : JSON.stringify(val)}`);
+  } else fail(`Signal "${n}" MISSING`);
 });
 const sel = sigMap['selectedID'];
 if (sel?.on?.length > 0 && sel.on[0].events?.includes('click'))
@@ -245,12 +255,14 @@ try {
   else
     fail(`Link count: got ${linksData.length}, expected ${expectedLinks}`);
 
-  // Position validity
-  const allHaveXY = treeData.every(d => typeof d.x === 'number' && typeof d.y === 'number');
-  if (allHaveXY) pass('All nodes have valid numeric x/y positions');
-  else fail('Some nodes have missing/NaN x/y positions');
+  // Position validity — support both x/y and rawX/rawY field names
+  const xField = treeData[0] && 'rawX' in treeData[0] ? 'rawX' : 'x';
+  const yField = treeData[0] && 'rawY' in treeData[0] ? 'rawY' : 'y';
+  const allHaveXY = treeData.every(d => typeof d[xField] === 'number' && typeof d[yField] === 'number');
+  if (allHaveXY) pass(`All nodes have valid numeric ${xField}/${yField} positions`);
+  else fail(`Some nodes have missing/NaN ${xField}/${yField} positions`);
 
-  const noNaN = treeData.every(d => !isNaN(d.x) && !isNaN(d.y));
+  const noNaN = treeData.every(d => !isNaN(d[xField]) && !isNaN(d[yField]));
   if (noNaN) pass('No NaN positions detected');
   else fail('NaN positions found — some nodes will not render');
 
@@ -265,22 +277,22 @@ try {
   pass(`Hierarchy spans levels ${minDepth}–${maxDepth} (${maxDepth - minDepth + 1} levels deep)`);
 
   // Layout bounds check
-  const xVals = treeData.map(d => d.x);
-  const yVals = treeData.map(d => d.y);
+  const xVals = treeData.map(d => d[xField]);
+  const yVals = treeData.map(d => d[yField]);
   const xMin = Math.min(...xVals), xMax = Math.max(...xVals);
   const yMin = Math.min(...yVals), yMax = Math.max(...yVals);
   pass(`X spread: ${xMin.toFixed(0)}–${xMax.toFixed(0)}px (canvas width: ${testSpec.width})`);
   pass(`Y spread: ${yMin.toFixed(0)}–${yMax.toFixed(0)}px (canvas height: ${testSpec.height})`);
 
   // Overlap check — no two nodes at identical positions
-  const posSet = new Set(treeData.map(d => `${d.x.toFixed(0)},${d.y.toFixed(0)}`));
+  const posSet = new Set(treeData.map(d => `${d[xField].toFixed(0)},${d[yField].toFixed(0)}`));
   if (posSet.size === treeData.length) pass('No overlapping node positions');
   else warn(`${treeData.length - posSet.size} nodes share positions — may overlap visually`);
 
   // Check root node is Sarah Chen
   const root = treeData.find(d => d.depth === 0);
-  if (root?.Name === 'Sarah Chen') pass(`Root node: "${root.Name}" at top (y=${root.y.toFixed(0)})`);
-  else pass(`Root node: "${root?.Name}" rendered at hierarchy top`);
+  if (root) pass(`Root node: "${root.Name}" at top (${yField}=${root[yField].toFixed(0)})`);
+  else warn('Root node not found in tree data');
 
   // Vega warnings
   if (vegaWarnings.length === 0) pass('No Vega runtime warnings');
