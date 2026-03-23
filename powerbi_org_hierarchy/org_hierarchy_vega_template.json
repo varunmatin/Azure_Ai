@@ -18,7 +18,7 @@
       "value": "",
       "on": [
         {
-          "events": {"type": "click", "markname": "nodeGroup"},
+          "events": {"type": "click", "markname": "nodeHitArea"},
           "update": "datum.EmployeeID != selectedID ? datum.EmployeeID : ''"
         }
       ]
@@ -228,10 +228,7 @@
           "y":      {"field": "displayY"},
           "width":  {"field": "nodeW"},
           "height": {"field": "nodeH"},
-          "cursor": {"value": "pointer"},
-          "tooltip": {
-            "signal": "{'Name': datum.Name, 'Title': datum.Title, 'Department': datum.Department, 'Location': datum.Location, 'Employee ID': datum.EmployeeID, 'Metric Field': datum['Metric Field'], 'Level': datum.depth + 1}"
-          }
+          "cursor": {"value": "default"}
         }
       },
       "marks": [
@@ -399,6 +396,24 @@
               "fontStyle": {"value": "italic"},
               "font":      {"value": "Segoe UI, sans-serif"},
               "limit":     {"value": 52}
+            }
+          }
+        },
+
+        {
+          "name": "nodeHitArea",
+          "type": "rect",
+          "encode": {
+            "update": {
+              "x":       {"value": 0},
+              "y":       {"value": 0},
+              "width":   {"signal": "parent.nodeW"},
+              "height":  {"signal": "parent.nodeH"},
+              "fill":    {"value": "transparent"},
+              "cursor":  {"value": "pointer"},
+              "tooltip": {
+                "signal": "{'Name': parent.Name, 'Title': parent.Title, 'Department': parent.Department, 'Location': parent.Location, 'Employee ID': parent.EmployeeID, 'Metric Field': parent['Metric Field'], 'Level': parent.depth + 1}"
+              }
             }
           }
         }
