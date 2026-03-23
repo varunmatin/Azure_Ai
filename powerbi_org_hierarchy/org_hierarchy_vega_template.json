@@ -65,7 +65,7 @@
         {
           "type": "formula",
           "as": "nodeW",
-          "expr": "max(100, floor((width - (datum.maxLevelCount - 1) * gapX) / datum.maxLevelCount))"
+          "expr": "floor((width - (datum.maxLevelCount - 1) * gapX) / datum.maxLevelCount)"
         },
         {
           "type": "formula",
