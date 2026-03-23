@@ -324,8 +324,22 @@ const specStr = specRaw;
 if (!specStr.includes('"hardcoded"') && !specStr.includes("'hardcoded'"))
   pass('No hardcoded data values detected — data comes from Power BI dataset');
 
-if (spec.autosize) pass(`autosize set to "${JSON.stringify(spec.autosize)}" — visual will fit container`);
+// Responsiveness: "none" is correct for Deneb — it lets Deneb set width/height signals directly.
+// Any autosize value other than "fit+contains:padding" avoids shrinking the signals below container size.
+if (spec.autosize === 'none') pass('autosize="none" — Deneb owns sizing; width/height signals = full container ✓');
+else if (spec.autosize) pass(`autosize set to "${JSON.stringify(spec.autosize)}" — visual will fit container`);
 else warn('autosize not set — visual may not resize with Power BI container');
+
+// Padding should be 0 so the background fills edge-to-edge and no empty border clips the chart
+const pad = spec.padding;
+const isZeroPad = pad === 0 || pad === undefined || (typeof pad === 'object' && !Object.values(pad).some(v => v > 0));
+if (isZeroPad) pass('padding=0 — chart fills the full Deneb visual container ✓');
+else warn(`padding=${JSON.stringify(pad)} — may leave empty border around chart; set to 0 for full-bleed`);
+
+// hMargin signal provides internal left/right breathing room replacing removed padding
+if (spec.signals?.some(s => s.name === 'hMargin'))
+  pass('hMargin signal present — internal horizontal margin keeps nodes off visual edges ✓');
+else warn('hMargin signal missing — leftmost/rightmost nodes may touch the visual edges');
 
 const hasLinkpathDatumBug = /linkpath[^}]*datum\.(source|target)/s.test(specStr);
 if (!hasLinkpathDatumBug) pass('No linkpath/datum prefix bug — connector field refs are correct');

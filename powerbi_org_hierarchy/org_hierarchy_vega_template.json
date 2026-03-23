@@ -3,15 +3,16 @@
   "description": "Power BI Organization Hierarchy — Deneb Visual. Fully responsive; all position math lives in the data pipeline to avoid signal/datum scoping issues in Deneb.",
   "width": 1200,
   "height": 700,
-  "padding": {"left": 8, "right": 8, "top": 8, "bottom": 8},
+  "padding": 0,
   "background": "#EEF2F7",
-  "autosize": {"type": "fit", "contains": "padding"},
+  "autosize": "none",
 
   "signals": [
     {"name": "titleH",  "value": 50},
     {"name": "legendH", "value": 20},
     {"name": "hdrH",    "value": 22},
     {"name": "gapX",    "value": 10},
+    {"name": "hMargin", "value": 6},
     {
       "name": "selectedID",
       "value": "",
@@ -85,7 +86,7 @@
         {
           "type": "formula",
           "as": "nodeW",
-          "expr": "datum.minRawXGap > 0 ? max(20, floor((datum.minRawXGap * width - gapX * 1000) / (1000 + datum.minRawXGap))) : max(20, floor(width / max(datum.maxLevelCount, 1)))"
+          "expr": "datum.minRawXGap > 0 ? max(20, floor((datum.minRawXGap * (width - 2*hMargin) - gapX * 1000) / (1000 + datum.minRawXGap))) : max(20, floor((width - 2*hMargin) / max(datum.maxLevelCount, 1)))"
         },
         {
           "type": "formula",
@@ -96,7 +97,7 @@
         {
           "type": "formula",
           "as": "scaleX",
-          "expr": "(width - datum.nodeW) / 1000"
+          "expr": "(width - 2*hMargin - datum.nodeW) / 1000"
         },
         {
           "type": "formula",
@@ -107,7 +108,7 @@
         {
           "type": "formula",
           "as": "displayX",
-          "expr": "datum.rawX * datum.scaleX"
+          "expr": "datum.rawX * datum.scaleX + hMargin"
         },
         {
           "type": "formula",
@@ -123,7 +124,7 @@
         {"type": "treelinks"},
         {
           "type": "formula", "as": "sx",
-          "expr": "datum.source.rawX * (width - datum.source.nodeW) / 1000 + datum.source.nodeW / 2"
+          "expr": "datum.source.rawX * (width - 2*hMargin - datum.source.nodeW) / 1000 + hMargin + datum.source.nodeW / 2"
         },
         {
           "type": "formula", "as": "sy",
@@ -131,7 +132,7 @@
         },
         {
           "type": "formula", "as": "tx",
-          "expr": "datum.target.rawX * (width - datum.target.nodeW) / 1000 + datum.target.nodeW / 2"
+          "expr": "datum.target.rawX * (width - 2*hMargin - datum.target.nodeW) / 1000 + hMargin + datum.target.nodeW / 2"
         },
         {
           "type": "formula", "as": "ty",
