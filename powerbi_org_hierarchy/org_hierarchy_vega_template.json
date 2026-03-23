@@ -404,27 +404,28 @@
               "limit":     {"value": 52}
             }
           }
-        },
-
-        {
-          "name": "nodeHitArea",
-          "type": "rect",
-          "encode": {
-            "update": {
-              "x":       {"value": 0},
-              "y":       {"value": 0},
-              "width":   {"signal": "parent.nodeW"},
-              "height":  {"signal": "parent.nodeH"},
-              "fill":    {"value": "transparent"},
-              "cursor":  {"value": "pointer"},
-              "tooltip": {
-                "signal": "{'Name': parent.Name, 'Title': parent.Title, 'Department': parent.Department, 'Location': parent.Location, 'Employee ID': parent.EmployeeID, 'Metric Field': parent['Metric Field'], 'Level': parent.depth + 1}"
-              }
-            }
-          }
         }
 
       ]
+    },
+
+    {
+      "name": "nodeHitArea",
+      "type": "rect",
+      "from": {"data": "tree"},
+      "encode": {
+        "update": {
+          "x":      {"field": "displayX"},
+          "y":      {"field": "displayY"},
+          "width":  {"field": "nodeW"},
+          "height": {"field": "nodeH"},
+          "fill":   {"value": "transparent"},
+          "cursor": {"value": "pointer"},
+          "tooltip": {
+            "signal": "{'Name': datum.Name, 'Title': datum.Title, 'Department': datum.Department, 'Location': datum.Location, 'Employee ID': datum.EmployeeID, 'Metric Field': datum['Metric Field'], 'Level': datum.depth + 1}"
+          }
+        }
+      }
     },
 
     {
