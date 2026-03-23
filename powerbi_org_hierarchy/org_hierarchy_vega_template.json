@@ -18,7 +18,7 @@
       "value": "",
       "on": [
         {
-          "events": "@nodeGroup:click",
+          "events": {"type": "click", "markname": "nodeGroup"},
           "update": "datum.EmployeeID != selectedID ? datum.EmployeeID : ''"
         }
       ]
@@ -244,6 +244,7 @@
 
         {
           "type": "rect",
+          "interactive": false,
           "encode": {
             "enter": {
               "x":    {"value": 2},
@@ -260,6 +261,7 @@
 
         {
           "type": "rect",
+          "interactive": false,
           "encode": {
             "enter": {
               "x":  {"value": 0},
@@ -272,16 +274,13 @@
               "fill":        {"value": "#FFFFFF"},
               "stroke":      {"signal": "parent.EmployeeID == selectedID ? '#F97316' : '#CBD5E1'"},
               "strokeWidth": {"signal": "parent.EmployeeID == selectedID ? 2.5 : 1"}
-            },
-            "hover": {
-              "stroke":      {"value": "#3B82F6"},
-              "strokeWidth": {"value": 2}
             }
           }
         },
 
         {
           "type": "rect",
+          "interactive": false,
           "encode": {
             "enter": {
               "x":  {"value": 0},
@@ -297,6 +296,7 @@
         },
         {
           "type": "rect",
+          "interactive": false,
           "encode": {
             "enter": {
               "x": {"value": 0},
@@ -312,6 +312,7 @@
 
         {
           "type": "text",
+          "interactive": false,
           "encode": {
             "update": {
               "x":          {"value": 6},
@@ -328,6 +329,7 @@
 
         {
           "type": "text",
+          "interactive": false,
           "encode": {
             "update": {
               "x":          {"value": 6},
@@ -344,6 +346,7 @@
 
         {
           "type": "text",
+          "interactive": false,
           "encode": {
             "update": {
               "x":        {"value": 6},
@@ -359,6 +362,7 @@
 
         {
           "type": "rule",
+          "interactive": false,
           "encode": {
             "update": {
               "x":           {"value": 6},
@@ -372,6 +376,7 @@
 
         {
           "type": "text",
+          "interactive": false,
           "encode": {
             "update": {
               "x":         {"value": 6},
@@ -388,6 +393,7 @@
 
         {
           "type": "text",
+          "interactive": false,
           "encode": {
             "update": {
               "x":         {"signal": "parent.nodeW - 6"},
