@@ -8,8 +8,9 @@
   "autosize": "none",
 
   "signals": [
-    {"name": "titleH",  "value": 10},
-    {"name": "legendH", "value": 36},
+    {"name": "titleH",   "value": 10},
+    {"name": "legendH",  "value": 36},
+    {"name": "legendGap","value": 25},
     {"name": "hdrH",    "value": 22},
     {"name": "gapX",    "value": 10},
     {"name": "hMargin", "value": 6},
@@ -105,7 +106,7 @@
         {
           "type": "formula",
           "as": "nodeH",
-          "expr": "max(65, min(95, floor((height - titleH - legendH) / max(datum.maxDepth + 1, 1) - 20)))"
+          "expr": "max(65, min(95, floor((height - titleH - legendH - legendGap) / max(datum.maxDepth + 1, 1) - 20)))"
         },
 
         {
@@ -116,7 +117,7 @@
         {
           "type": "formula",
           "as": "scaleY",
-          "expr": "(height - titleH - legendH - datum.nodeH) / 1000"
+          "expr": "(height - titleH - legendH - legendGap - datum.nodeH) / 1000"
         },
 
         {
@@ -142,7 +143,7 @@
         },
         {
           "type": "formula", "as": "sy",
-          "expr": "datum.source.rawY * (height - titleH - legendH - datum.source.nodeH) / 1000 + titleH + datum.source.nodeH"
+          "expr": "datum.source.rawY * (height - titleH - legendH - legendGap - datum.source.nodeH) / 1000 + titleH + datum.source.nodeH"
         },
         {
           "type": "formula", "as": "tx",
@@ -150,7 +151,7 @@
         },
         {
           "type": "formula", "as": "ty",
-          "expr": "datum.target.rawY * (height - titleH - legendH - datum.target.nodeH) / 1000 + titleH"
+          "expr": "datum.target.rawY * (height - titleH - legendH - legendGap - datum.target.nodeH) / 1000 + titleH"
         },
         {
           "type": "formula", "as": "fy",
@@ -388,8 +389,8 @@
       "type": "group",
       "encode": {
         "update": {
-          "x":      {"value": 8},
-          "y":      {"signal": "height - legendH + 4"},
+          "x":      {"signal": "max(8, (width - 400) / 2)"},
+          "y":      {"signal": "height - legendH"},
           "width":  {"value": 500},
           "height": {"value": 14}
         }
