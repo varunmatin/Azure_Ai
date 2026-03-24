@@ -4,234 +4,232 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  *, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-  }
-
-  body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
     -webkit-font-smoothing: antialiased;
-    background: #eef3fb;
   }
 
-  /* ── Outer wrapper ── */
+  /* ── Root layout — mirrors the card/canvas background of the hierarchy ── */
+  body {
+    background: #FFFFFF;
+  }
+
   .header {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;       /* same card border colour */
+    border-radius: 7px;              /* same card corner radius */
+    overflow: hidden;
+    box-shadow: 2px 2px 0 #00000015; /* same drop-shadow as nodes */
+  }
+
+  /* ── Colour band — matches depth-0 (C-Suite) header band ── */
+  .band {
+    width: 8px;
+    flex-shrink: 0;
+    background: #1E3A5F;
+  }
+
+  /* ── Body ── */
+  .body {
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 100%;
-    height: 100%;
-    padding: 0 28px;
-    background: linear-gradient(135deg, #1b2e55 0%, #1e3a6e 60%, #1a4080 100%);
-    border-bottom: 3px solid #1d4ed8;
-    position: relative;
-    overflow: hidden;
+    padding: 0 18px 0 14px;
+    gap: 16px;
   }
 
-  /* ── Decorative arc (mirrors the org chart's rounded card aesthetic) ── */
-  .header::before {
-    content: '';
-    position: absolute;
-    right: -80px;
-    top: -80px;
-    width: 260px;
-    height: 260px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    pointer-events: none;
-  }
-  .header::after {
-    content: '';
-    position: absolute;
-    right: 60px;
-    bottom: -100px;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.03);
-    pointer-events: none;
-  }
-
-  /* ── Left: icon + title block ── */
-  .header-left {
+  /* ── LEFT: icon + title ── */
+  .left {
     display: flex;
     align-items: center;
-    gap: 14px;
-    z-index: 1;
+    gap: 10px;
+    flex-shrink: 0;
   }
 
-  .header-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 9px;
-    background: rgba(255,255,255,0.12);
-    border: 1.5px solid rgba(255,255,255,0.2);
+  .icon-wrap {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    background: #1E3A5F;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
   }
 
-  /* Simple grid-of-dots icon — echoes the org-chart node motif */
-  .header-icon svg {
-    width: 20px;
-    height: 20px;
-  }
+  .icon-wrap svg { width: 18px; height: 18px; }
 
-  .header-titles {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+  .titles { display: flex; flex-direction: column; gap: 1px; }
 
-  .header-title {
-    font-size: 20px;
+  /* Level badge — same style as the ▸ tier label inside node headers */
+  .badge {
+    display: inline-block;
+    font-size: 7px;
     font-weight: 700;
-    color: #ffffff;
-    letter-spacing: -0.4px;
-    line-height: 1.15;
-    white-space: nowrap;
-  }
-
-  .header-subtitle {
-    font-size: 10px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.55);
+    color: #DBEAFE;
     text-transform: uppercase;
-    letter-spacing: 1.4px;
+    letter-spacing: 1.1px;
+    background: #1E3A5F;
+    border-radius: 3px;
+    padding: 1px 5px;
+    align-self: flex-start;
+    margin-bottom: 2px;
+  }
+
+  /* Main title — same weight/colour as the Name field on a node card */
+  .title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.3px;
+    line-height: 1.1;
     white-space: nowrap;
   }
 
-  /* ── Center: vertical rule + scope text ── */
-  .header-center {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    z-index: 1;
+  /* Subtitle — matches the Title field style */
+  .subtitle {
+    font-size: 9px;
+    color: #334155;
+    white-space: nowrap;
   }
 
-  .vr {
+  /* ── DIVIDER ── */
+  .divider {
     width: 1px;
-    height: 32px;
-    background: rgba(255,255,255,0.18);
+    height: 28px;
+    background: #E2E8F0;   /* same rule colour used between card sections */
     flex-shrink: 0;
   }
 
-  .scope-text {
-    font-size: 11px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.60);
+  /* ── CENTER: scope tag — matches Department italic style ── */
+  .scope {
+    font-size: 9px;
+    font-style: italic;
+    color: #64748B;
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
-  /* ── Right: tier legend ── */
-  .tier-legend {
+  /* ── RIGHT: tier legend ── */
+  .legend {
     display: flex;
     align-items: center;
-    gap: 12px;
-    z-index: 1;
+    gap: 8px;
+    flex-shrink: 0;
   }
 
-  .tier-pill {
+  .tier {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 9px;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.13);
+    gap: 4px;
+    padding: 3px 7px;
+    border-radius: 4px;       /* matches node card rx */
+    border: 1px solid #CBD5E1;
+    background: #F8FAFC;
   }
 
-  .tier-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
+  /* 10×10 swatch — same shape as the legend squares in the Vega spec */
+  .swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
     flex-shrink: 0;
   }
 
   .tier-label {
-    font-size: 9.5px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.80);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
+    font-size: 8px;
+    font-weight: 700;
     white-space: nowrap;
   }
 
-  /* Tier colours — exact match to the org chart legend */
-  .dot-csuite      { background: #1b2e55; border: 1.5px solid #6b7caa; }
-  .dot-vp          { background: #1d4ed8; }
-  .dot-director    { background: #16a34a; }
-  .dot-manager     { background: #7c3aed; }
-  .dot-ic          { background: #9ca3af; }
+  /* Exact colours from the Vega template depth expressions */
+  .t0 { background: #1E3A5F; }  /* C-Suite   — depth 0 */
+  .t1 { background: #1D4ED8; }  /* VP / SVP  — depth 1 */
+  .t2 { background: #0284C7; }  /* Director  — depth 2 */
+  .t3 { background: #059669; }  /* Manager   — depth 3 */
+  .t4 { background: #7C3AED; }  /* IC        — depth 4 */
 
+  .t0-txt { color: #1E3A5F; }
+  .t1-txt { color: #1D4ED8; }
+  .t2-txt { color: #0284C7; }
+  .t3-txt { color: #059669; }
+  .t4-txt { color: #7C3AED; }
 </style>
 </head>
 <body>
-<header class="header">
+<div class="header">
 
-  <!-- LEFT: brand mark + title -->
-  <div class="header-left">
-    <div class="header-icon">
-      <!-- hierarchy / org-tree SVG icon -->
-      <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="7" y="1" width="6" height="4.5" rx="1.2" fill="rgba(255,255,255,0.9)"/>
-        <rect x="1" y="13.5" width="5.5" height="4" rx="1" fill="rgba(255,255,255,0.75)"/>
-        <rect x="7.25" y="13.5" width="5.5" height="4" rx="1" fill="rgba(255,255,255,0.75)"/>
-        <rect x="13.5" y="13.5" width="5.5" height="4" rx="1" fill="rgba(255,255,255,0.75)"/>
-        <!-- connector lines -->
-        <line x1="10" y1="5.5" x2="10" y2="9"   stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
-        <line x1="3.75" y1="9" x2="16.25" y2="9"  stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
-        <line x1="3.75"  y1="9" x2="3.75"  y2="13.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
-        <line x1="10"    y1="9" x2="10"    y2="13.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
-        <line x1="16.25" y1="9" x2="16.25" y2="13.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
-      </svg>
+  <!-- Left colour band — C-Suite depth colour -->
+  <div class="band"></div>
+
+  <div class="body">
+
+    <!-- LEFT -->
+    <div class="left">
+      <div class="icon-wrap">
+        <!-- Org-tree icon matching the node layout shape -->
+        <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="1" width="6" height="4" rx="1" fill="rgba(255,255,255,0.9)"/>
+          <rect x="1"  y="12" width="4.5" height="3.5" rx="1" fill="rgba(255,255,255,0.7)"/>
+          <rect x="6.75" y="12" width="4.5" height="3.5" rx="1" fill="rgba(255,255,255,0.7)"/>
+          <rect x="12.5" y="12" width="4.5" height="3.5" rx="1" fill="rgba(255,255,255,0.7)"/>
+          <line x1="9"   y1="5"  x2="9"    y2="8"   stroke="rgba(255,255,255,0.55)" stroke-width="1.1"/>
+          <line x1="3.25" y1="8" x2="14.75" y2="8"  stroke="rgba(255,255,255,0.55)" stroke-width="1.1"/>
+          <line x1="3.25" y1="8" x2="3.25"  y2="12" stroke="rgba(255,255,255,0.55)" stroke-width="1.1"/>
+          <line x1="9"    y1="8" x2="9"     y2="12" stroke="rgba(255,255,255,0.55)" stroke-width="1.1"/>
+          <line x1="14.75" y1="8" x2="14.75" y2="12" stroke="rgba(255,255,255,0.55)" stroke-width="1.1"/>
+        </svg>
+      </div>
+
+      <div class="titles">
+        <span class="badge">▸ DASHBOARD</span>
+        <span class="title">Unified Data View</span>
+        <span class="subtitle">Organization Intelligence</span>
+      </div>
     </div>
 
-    <div class="header-titles">
-      <span class="header-title">Unified Data View</span>
-      <span class="header-subtitle">Organization Intelligence Dashboard</span>
+    <div class="divider"></div>
+
+    <!-- CENTER -->
+    <span class="scope">Enterprise &nbsp;·&nbsp; All Levels &nbsp;·&nbsp; Live</span>
+
+    <div class="divider"></div>
+
+    <!-- RIGHT: tier legend — matches the bottom legend of the Vega visual -->
+    <div class="legend">
+      <div class="tier">
+        <div class="swatch t0"></div>
+        <span class="tier-label t0-txt">C-Suite</span>
+      </div>
+      <div class="tier">
+        <div class="swatch t1"></div>
+        <span class="tier-label t1-txt">VP / SVP</span>
+      </div>
+      <div class="tier">
+        <div class="swatch t2"></div>
+        <span class="tier-label t2-txt">Director</span>
+      </div>
+      <div class="tier">
+        <div class="swatch t3"></div>
+        <span class="tier-label t3-txt">Manager</span>
+      </div>
+      <div class="tier">
+        <div class="swatch t4"></div>
+        <span class="tier-label t4-txt">Indiv. Contributor</span>
+      </div>
     </div>
+
   </div>
-
-  <!-- CENTER: divider + context label -->
-  <div class="header-center">
-    <div class="vr"></div>
-    <span class="scope-text">Enterprise · All Levels · Live</span>
-  </div>
-
-  <!-- RIGHT: tier colour legend -->
-  <div class="tier-legend">
-    <div class="tier-pill">
-      <div class="tier-dot dot-csuite"></div>
-      <span class="tier-label">C-Suite</span>
-    </div>
-    <div class="tier-pill">
-      <div class="tier-dot dot-vp"></div>
-      <span class="tier-label">VP / EVP</span>
-    </div>
-    <div class="tier-pill">
-      <div class="tier-dot dot-director"></div>
-      <span class="tier-label">Director</span>
-    </div>
-    <div class="tier-pill">
-      <div class="tier-dot dot-manager"></div>
-      <span class="tier-label">Manager</span>
-    </div>
-    <div class="tier-pill">
-      <div class="tier-dot dot-ic"></div>
-      <span class="tier-label">IC</span>
-    </div>
-  </div>
-
-</header>
+</div>
 </body>
 </html>
