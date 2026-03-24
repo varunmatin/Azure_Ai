@@ -1,28 +1,42 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "Power BI Organization Hierarchy Chart — Deneb Visual. Data read from Power BI dataset. Interactive: click to select, hover for tooltip.",
+  "description": "Power BI Organization Hierarchy — Deneb Visual. Fully responsive; all position math lives in the data pipeline to avoid signal/datum scoping issues in Deneb.",
   "width": 1200,
-  "height": 820,
-  "padding": {"left": 30, "right": 30, "top": 60, "bottom": 30},
-  "background": "#EEF2F7",
-  "autosize": {"type": "fit", "contains": "padding"},
+  "height": 700,
+  "padding": 0,
+  "background": "#FFFFFF",
+  "autosize": "none",
 
   "signals": [
-    {"name": "nodeW", "value": 200},
-    {"name": "nodeH", "value": 98},
-    {"name": "hdrH",  "value": 26},
-    {"name": "gapX",  "value": 20},
-    {"name": "gapY",  "value": 60},
-
+    {"name": "titleH",   "value": 10},
+    {"name": "legendH",  "value": 36},
+    {"name": "legendGap","value": 25},
+    {"name": "hdrH",    "value": 22},
+    {"name": "gapX",    "value": 10},
+    {"name": "hMargin", "value": 6},
     {
-      "name": "selectedID",
-      "value": "",
+      "name": "pbiCrossFilterApply",
       "on": [
         {
-          "events": "@nodeGroup:click",
-          "update": "datum.EmployeeID != selectedID ? datum.EmployeeID : ''"
+          "events": {"type": "click", "markname": "nodeHitArea"},
+          "update": "true",
+          "force": true
         }
       ]
+    },
+    {
+      "name": "pbiCrossFilterClear",
+      "on": [
+        {
+          "events": "view:mousedown[!event.item]",
+          "update": "true",
+          "force": true
+        }
+      ]
+    },
+    {
+      "name": "treeWidth",
+      "update": "width"
     }
   ],
 
@@ -35,6 +49,10 @@
       "source": "dataset",
       "transform": [
         {
+          "type": "filter",
+          "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"
+        },
+        {
           "type": "stratify",
           "key": "EmployeeID",
           "parentKey": "ManagerID"
@@ -42,9 +60,75 @@
         {
           "type": "tree",
           "method": "tidy",
-          "size": [{"signal": "width - gapX"}, {"signal": "height - gapY - 60"}],
-          "separation": true,
-          "as": ["x", "y", "depth", "children"]
+          "size": [1000, 1000],
+          "separation": false,
+          "as": ["rawX", "rawY", "depth", "children"]
+        },
+
+        {
+          "type": "joinaggregate",
+          "groupby": ["depth"],
+          "ops": ["count"],
+          "as": ["levelCount"]
+        },
+        {
+          "type": "joinaggregate",
+          "ops": ["max", "max"],
+          "fields": ["levelCount", "depth"],
+          "as": ["maxLevelCount", "maxDepth"]
+        },
+
+        {
+          "type": "window",
+          "sort": {"field": "rawX", "order": "ascending"},
+          "groupby": ["depth"],
+          "ops": ["lag"],
+          "fields": ["rawX"],
+          "as": ["prevRawX"]
+        },
+        {
+          "type": "formula",
+          "as": "rawXGap",
+          "expr": "datum.prevRawX != null ? datum.rawX - datum.prevRawX : null"
+        },
+        {
+          "type": "joinaggregate",
+          "ops": ["min"],
+          "fields": ["rawXGap"],
+          "as": ["minRawXGap"]
+        },
+
+        {
+          "type": "formula",
+          "as": "nodeW",
+          "expr": "datum.minRawXGap > 0 ? max(20, floor((datum.minRawXGap * (treeWidth - 2*hMargin) - gapX * 1000) / (1000 + datum.minRawXGap))) : max(20, floor((treeWidth - 2*hMargin) / max(datum.maxLevelCount, 1)))"
+        },
+        {
+          "type": "formula",
+          "as": "nodeH",
+          "expr": "max(65, min(95, floor((height - titleH - legendH - legendGap) / max(datum.maxDepth + 1, 1) - 20)))"
+        },
+
+        {
+          "type": "formula",
+          "as": "scaleX",
+          "expr": "(treeWidth - 2*hMargin - datum.nodeW) / 1000"
+        },
+        {
+          "type": "formula",
+          "as": "scaleY",
+          "expr": "(height - titleH - legendH - legendGap - datum.nodeH) / 1000"
+        },
+
+        {
+          "type": "formula",
+          "as": "displayX",
+          "expr": "datum.rawX * datum.scaleX + hMargin"
+        },
+        {
+          "type": "formula",
+          "as": "displayY",
+          "expr": "datum.rawY * datum.scaleY + titleH"
         }
       ]
     },
@@ -54,13 +138,28 @@
       "transform": [
         {"type": "treelinks"},
         {
-          "type": "linkpath",
-          "orient": "vertical",
-          "shape": "orthogonal",
-          "sourceX": "source.x",
-          "sourceY": "source.y",
-          "targetX": "target.x",
-          "targetY": "target.y"
+          "type": "formula", "as": "sx",
+          "expr": "datum.source.rawX * (treeWidth - 2*hMargin - datum.source.nodeW) / 1000 + hMargin + datum.source.nodeW / 2"
+        },
+        {
+          "type": "formula", "as": "sy",
+          "expr": "datum.source.rawY * (height - titleH - legendH - legendGap - datum.source.nodeH) / 1000 + titleH + datum.source.nodeH"
+        },
+        {
+          "type": "formula", "as": "tx",
+          "expr": "datum.target.rawX * (treeWidth - 2*hMargin - datum.target.nodeW) / 1000 + hMargin + datum.target.nodeW / 2"
+        },
+        {
+          "type": "formula", "as": "ty",
+          "expr": "datum.target.rawY * (height - titleH - legendH - legendGap - datum.target.nodeH) / 1000 + titleH"
+        },
+        {
+          "type": "formula", "as": "fy",
+          "expr": "(datum.sy + datum.ty) / 2"
+        },
+        {
+          "type": "formula", "as": "path",
+          "expr": "'M' + datum.sx + ',' + datum.sy + ' V' + datum.fy + ' H' + datum.tx + ' V' + datum.ty"
         }
       ]
     }
@@ -68,37 +167,6 @@
 
   "marks": [
 
-    {
-      "type": "text",
-      "encode": {
-        "enter": {
-          "x":          {"signal": "width / 2"},
-          "y":          {"value": -35},
-          "text":       {"value": "Organization Hierarchy"},
-          "align":      {"value": "center"},
-          "baseline":   {"value": "top"},
-          "fill":       {"value": "#1E3A5F"},
-          "fontSize":   {"value": 22},
-          "fontWeight": {"value": "bold"},
-          "font":       {"value": "Segoe UI, sans-serif"}
-        }
-      }
-    },
-    {
-      "type": "text",
-      "encode": {
-        "enter": {
-          "x":        {"signal": "width / 2"},
-          "y":        {"value": -12},
-          "text":     {"value": "Click a card to highlight  •  Hover for full details"},
-          "align":    {"value": "center"},
-          "baseline": {"value": "top"},
-          "fill":     {"value": "#64748B"},
-          "fontSize": {"value": 11},
-          "font":     {"value": "Segoe UI, sans-serif"}
-        }
-      }
-    },
 
     {
       "type": "path",
@@ -119,149 +187,141 @@
       "from": {"data": "tree"},
       "encode": {
         "update": {
-          "x":      {"signal": "datum.x - nodeW / 2"},
-          "y":      {"signal": "datum.y + 30"},
-          "width":  {"signal": "nodeW"},
-          "height": {"signal": "nodeH"},
-          "cursor": {"value": "pointer"},
-          "tooltip": {
-            "signal": "{'Name': datum.Name, 'Title': datum.Title, 'Department': datum.Department, 'Location': datum.Location, 'Employee ID': datum.EmployeeID, 'Org Level': datum.depth + 1}"
-          }
+          "x":      {"field": "displayX"},
+          "y":      {"field": "displayY"},
+          "width":  {"field": "nodeW"},
+          "height": {"field": "nodeH"},
+          "cursor": {"value": "default"}
         }
       },
       "marks": [
 
         {
           "type": "rect",
+          "interactive": false,
           "encode": {
             "enter": {
-              "x":    {"value": 3},
-              "y":    {"value": 3},
-              "rx":   {"value": 8},
-              "ry":   {"value": 8},
-              "fill": {"value": "#00000018"}
+              "x":    {"value": 2},
+              "y":    {"value": 2},
+              "rx":   {"value": 7},
+              "fill": {"value": "#00000015"}
             },
             "update": {
-              "width":  {"signal": "nodeW"},
-              "height": {"signal": "nodeH"}
+              "width":  {"signal": "parent.nodeW"},
+              "height": {"signal": "parent.nodeH"}
             }
           }
         },
 
         {
           "type": "rect",
+          "interactive": false,
           "encode": {
             "enter": {
               "x":  {"value": 0},
               "y":  {"value": 0},
-              "rx": {"value": 8},
-              "ry": {"value": 8}
+              "rx": {"value": 7}
             },
             "update": {
-              "width":       {"signal": "nodeW"},
-              "height":      {"signal": "nodeH"},
+              "width":       {"signal": "parent.nodeW"},
+              "height":      {"signal": "parent.nodeH"},
               "fill":        {"value": "#FFFFFF"},
-              "stroke": {
-                "signal": "parent.EmployeeID == selectedID ? '#F97316' : '#CBD5E1'"
-              },
-              "strokeWidth": {
-                "signal": "parent.EmployeeID == selectedID ? 3 : 1"
-              }
-            },
-            "hover": {
-              "stroke":      {"value": "#3B82F6"},
-              "strokeWidth": {"value": 2.5}
+              "stroke":      {"signal": "parent.__selected__ == 'on' ? '#F97316' : '#CBD5E1'"},
+              "strokeWidth": {"signal": "parent.__selected__ == 'on' ? 2.5 : 1"}
             }
           }
         },
 
         {
           "type": "rect",
+          "interactive": false,
           "encode": {
+            "enter": {
+              "x":  {"value": 0},
+              "y":  {"value": 0},
+              "rx": {"value": 7}
+            },
             "update": {
-              "x":      {"value": 0},
-              "y":      {"value": 0},
-              "width":  {"signal": "nodeW"},
+              "width":  {"signal": "parent.nodeW"},
               "height": {"signal": "hdrH"},
-              "rx":     {"value": 8},
-              "ry":     {"value": 8},
-              "fill": {
-                "signal": "parent.depth === 0 ? '#1E3A5F' : parent.depth === 1 ? '#1D4ED8' : parent.depth === 2 ? '#0284C7' : parent.depth === 3 ? '#059669' : '#7C3AED'"
-              }
+              "fill":   {"signal": "parent.depth===0?'#1E3A5F':parent.depth===1?'#1D4ED8':parent.depth===2?'#0284C7':parent.depth===3?'#059669':'#7C3AED'"}
             }
           }
         },
         {
           "type": "rect",
+          "interactive": false,
           "encode": {
+            "enter": {
+              "x": {"value": 0},
+              "y": {"value": 15}
+            },
             "update": {
-              "x":      {"value": 0},
-              "y":      {"value": 13},
-              "width":  {"signal": "nodeW"},
-              "height": {"value": 13},
-              "fill": {
-                "signal": "parent.depth === 0 ? '#1E3A5F' : parent.depth === 1 ? '#1D4ED8' : parent.depth === 2 ? '#0284C7' : parent.depth === 3 ? '#059669' : '#7C3AED'"
-              }
+              "width":  {"signal": "parent.nodeW"},
+              "height": {"value": 7},
+              "fill":   {"signal": "parent.depth===0?'#1E3A5F':parent.depth===1?'#1D4ED8':parent.depth===2?'#0284C7':parent.depth===3?'#059669':'#7C3AED'"}
             }
           }
         },
 
         {
           "type": "text",
+          "interactive": false,
           "encode": {
             "update": {
-              "x":          {"value": 9},
-              "y":          {"value": 17},
-              "text": {
-                "signal": "parent.depth === 0 ? '▸ C-SUITE' : parent.depth === 1 ? '▸ VP / SVP' : parent.depth === 2 ? '▸ DIRECTOR' : parent.depth === 3 ? '▸ MANAGER' : '▸ INDIVIDUAL CONTRIBUTOR'"
-              },
+              "x":          {"value": 6},
+              "y":          {"signal": "hdrH - 4"},
+              "text":       {"signal": "parent.depth===0?'▸ C-SUITE':parent.depth===1?'▸ VP / SVP':parent.depth===2?'▸ DIRECTOR':parent.depth===3?'▸ MANAGER':'▸ IC'"},
               "fill":       {"value": "#DBEAFE"},
-              "fontSize":   {"value": 8},
+              "fontSize":   {"value": 7},
               "fontWeight": {"value": "bold"},
               "font":       {"value": "Segoe UI, sans-serif"},
-              "limit":      {"signal": "nodeW - 14"}
+              "limit":      {"signal": "parent.nodeW - 10"}
             }
           }
         },
 
         {
           "type": "text",
+          "interactive": false,
           "encode": {
             "update": {
-              "x":          {"value": 9},
-              "y":          {"value": 44},
+              "x":          {"value": 6},
+              "y":          {"signal": "hdrH + 14"},
               "text":       {"signal": "parent.Name"},
               "fill":       {"value": "#0F172A"},
-              "fontSize":   {"value": 12},
+              "fontSize":   {"signal": "parent.nodeW < 130 ? 9 : 11"},
               "fontWeight": {"value": "bold"},
               "font":       {"value": "Segoe UI, sans-serif"},
-              "limit":      {"signal": "nodeW - 16"}
+              "limit":      {"signal": "parent.nodeW - 10"}
             }
           }
         },
 
         {
           "type": "text",
+          "interactive": false,
           "encode": {
             "update": {
-              "x":        {"value": 9},
-              "y":        {"value": 59},
+              "x":        {"value": 6},
+              "y":        {"signal": "hdrH + 28"},
               "text":     {"signal": "parent.Title"},
               "fill":     {"value": "#334155"},
-              "fontSize": {"value": 10},
+              "fontSize": {"signal": "parent.nodeW < 130 ? 7 : 9"},
               "font":     {"value": "Segoe UI, sans-serif"},
-              "limit":    {"signal": "nodeW - 16"}
+              "limit":    {"signal": "parent.nodeW - 10"}
             }
           }
         },
 
         {
           "type": "rule",
+          "interactive": false,
           "encode": {
             "update": {
-              "x":           {"value": 9},
-              "x2":          {"signal": "nodeW - 9"},
-              "y":           {"value": 67},
+              "x":           {"value": 6},
+              "x2":          {"signal": "parent.nodeW - 6"},
+              "y":           {"signal": "hdrH + 38"},
               "stroke":      {"value": "#E2E8F0"},
               "strokeWidth": {"value": 0.75}
             }
@@ -270,33 +330,35 @@
 
         {
           "type": "text",
+          "interactive": false,
           "encode": {
             "update": {
-              "x":         {"value": 9},
-              "y":         {"value": 80},
+              "x":         {"value": 6},
+              "y":         {"signal": "hdrH + 52"},
               "text":      {"signal": "parent.Department"},
               "fill":      {"value": "#64748B"},
-              "fontSize":  {"value": 9},
+              "fontSize":  {"value": 8},
               "fontStyle": {"value": "italic"},
               "font":      {"value": "Segoe UI, sans-serif"},
-              "limit":     {"signal": "nodeW - 40"}
+              "limit":     {"signal": "parent.nodeW - 58"}
             }
           }
         },
 
         {
           "type": "text",
+          "interactive": false,
           "encode": {
             "update": {
-              "x":         {"signal": "nodeW - 9"},
-              "y":         {"value": 80},
+              "x":         {"signal": "parent.nodeW - 6"},
+              "y":         {"signal": "hdrH + 52"},
               "text":      {"signal": "parent.Location"},
               "fill":      {"value": "#94A3B8"},
-              "fontSize":  {"value": 9},
+              "fontSize":  {"value": 8},
               "align":     {"value": "right"},
               "fontStyle": {"value": "italic"},
               "font":      {"value": "Segoe UI, sans-serif"},
-              "limit":     {"value": 70}
+              "limit":     {"value": 52}
             }
           }
         }
@@ -305,26 +367,45 @@
     },
 
     {
+      "name": "nodeHitArea",
+      "type": "rect",
+      "from": {"data": "tree"},
+      "encode": {
+        "update": {
+          "x":      {"field": "displayX"},
+          "y":      {"field": "displayY"},
+          "width":  {"field": "nodeW"},
+          "height": {"field": "nodeH"},
+          "fill":   {"value": "transparent"},
+          "cursor": {"value": "pointer"},
+          "tooltip": {
+            "signal": "{'Name': datum.Name, 'Title': datum.Title, 'Department': datum.Department, 'Location': datum.Location, 'Employee ID': datum.EmployeeID, 'Metric Field': datum['Metric Field'], 'Level': datum.depth + 1}"
+          }
+        }
+      }
+    },
+
+    {
       "type": "group",
       "encode": {
-        "enter": {
-          "x":      {"value": 20},
-          "y":      {"signal": "height - 20"},
-          "width":  {"value": 650},
-          "height": {"value": 18}
+        "update": {
+          "x":      {"signal": "max(8, (width - 400) / 2)"},
+          "y":      {"signal": "height - legendH"},
+          "width":  {"value": 500},
+          "height": {"value": 14}
         }
       },
       "marks": [
-        { "type": "rect",   "encode": { "enter": { "x": {"value": 0},   "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#1E3A5F"} } } },
-        { "type": "text",   "encode": { "enter": { "x": {"value": 16},  "y": {"value": 10}, "text": {"value": "C-Suite"},   "fill": {"value": "#1E3A5F"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } },
-        { "type": "rect",   "encode": { "enter": { "x": {"value": 68},  "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#1D4ED8"} } } },
-        { "type": "text",   "encode": { "enter": { "x": {"value": 84},  "y": {"value": 10}, "text": {"value": "VP / SVP"}, "fill": {"value": "#1D4ED8"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } },
-        { "type": "rect",   "encode": { "enter": { "x": {"value": 148}, "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#0284C7"} } } },
-        { "type": "text",   "encode": { "enter": { "x": {"value": 164}, "y": {"value": 10}, "text": {"value": "Director"}, "fill": {"value": "#0284C7"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } },
-        { "type": "rect",   "encode": { "enter": { "x": {"value": 220}, "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#059669"} } } },
-        { "type": "text",   "encode": { "enter": { "x": {"value": 236}, "y": {"value": 10}, "text": {"value": "Manager"},  "fill": {"value": "#059669"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } },
-        { "type": "rect",   "encode": { "enter": { "x": {"value": 296}, "y": {"value": 0}, "width": {"value": 12}, "height": {"value": 12}, "rx": {"value": 2}, "fill": {"value": "#7C3AED"} } } },
-        { "type": "text",   "encode": { "enter": { "x": {"value": 312}, "y": {"value": 10}, "text": {"value": "Individual Contributor"}, "fill": {"value": "#7C3AED"}, "fontSize": {"value": 9}, "fontWeight": {"value": "bold"} } } }
+        {"type":"rect","encode":{"enter":{"x":{"value":0},"y":{"value":0},"width":{"value":10},"height":{"value":10},"rx":{"value":2},"fill":{"value":"#1E3A5F"}}}},
+        {"type":"text","encode":{"enter":{"x":{"value":13},"y":{"value":9},"text":{"value":"C-Suite"},"fill":{"value":"#1E3A5F"},"fontSize":{"value":8},"fontWeight":{"value":"bold"},"font":{"value":"Segoe UI, sans-serif"}}}},
+        {"type":"rect","encode":{"enter":{"x":{"value":60},"y":{"value":0},"width":{"value":10},"height":{"value":10},"rx":{"value":2},"fill":{"value":"#1D4ED8"}}}},
+        {"type":"text","encode":{"enter":{"x":{"value":73},"y":{"value":9},"text":{"value":"VP / SVP"},"fill":{"value":"#1D4ED8"},"fontSize":{"value":8},"fontWeight":{"value":"bold"},"font":{"value":"Segoe UI, sans-serif"}}}},
+        {"type":"rect","encode":{"enter":{"x":{"value":128},"y":{"value":0},"width":{"value":10},"height":{"value":10},"rx":{"value":2},"fill":{"value":"#0284C7"}}}},
+        {"type":"text","encode":{"enter":{"x":{"value":141},"y":{"value":9},"text":{"value":"Director"},"fill":{"value":"#0284C7"},"fontSize":{"value":8},"fontWeight":{"value":"bold"},"font":{"value":"Segoe UI, sans-serif"}}}},
+        {"type":"rect","encode":{"enter":{"x":{"value":192},"y":{"value":0},"width":{"value":10},"height":{"value":10},"rx":{"value":2},"fill":{"value":"#059669"}}}},
+        {"type":"text","encode":{"enter":{"x":{"value":205},"y":{"value":9},"text":{"value":"Manager"},"fill":{"value":"#059669"},"fontSize":{"value":8},"fontWeight":{"value":"bold"},"font":{"value":"Segoe UI, sans-serif"}}}},
+        {"type":"rect","encode":{"enter":{"x":{"value":256},"y":{"value":0},"width":{"value":10},"height":{"value":10},"rx":{"value":2},"fill":{"value":"#7C3AED"}}}},
+        {"type":"text","encode":{"enter":{"x":{"value":269},"y":{"value":9},"text":{"value":"Individual Contributor"},"fill":{"value":"#7C3AED"},"fontSize":{"value":8},"fontWeight":{"value":"bold"},"font":{"value":"Segoe UI, sans-serif"}}}}
       ]
     }
 

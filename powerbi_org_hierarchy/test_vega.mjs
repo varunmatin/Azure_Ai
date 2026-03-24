@@ -103,28 +103,37 @@ if (strat) {
 
 if (treeT) {
   pass(`tree layout transform present (method: "${treeT.method}")`);
-  if (treeT.separation === true) pass('  separation = true (prevents node overlap)');
+  if (treeT.separation === false) pass('  separation = false — uniform spacing, no overlap');
+  else if (treeT.separation === true) pass('  separation = true (prevents node overlap)');
   else warn('  separation not set — sibling nodes may overlap');
 } else fail('tree layout transform MISSING');
 
-// ── TEST 5: Linkpath field references ──────────────────────────────────────
-section('TEST 5 — Linkpath Transform Field References');
+// ── TEST 5: Connector path generation ──────────────────────────────────────
+section('TEST 5 — Connector Path Generation');
 const linksDS = spec.data.find(d => d.name === 'links');
-const lp = linksDS?.transform?.find(t => t.type === 'linkpath');
-if (lp) {
-  pass('linkpath transform present');
-  const refs = { sourceX: 'source.x', sourceY: 'source.y', targetX: 'target.x', targetY: 'target.y' };
-  Object.entries(refs).forEach(([param, expected]) => {
-    const actual = lp[param];
-    if (actual === expected) pass(`  ${param} = "${actual}" ✓`);
-    else if (actual?.startsWith('datum.'))
-      fail(`  ${param} = "${actual}" — WRONG: "datum." prefix is invalid in linkpath field refs. Should be "${expected}"`);
-    else
-      fail(`  ${param} = "${actual}" — expected "${expected}"`);
-  });
-  if (lp.orient === 'vertical')  pass(`  orient = "vertical" (top-down tree) ✓`);
-  if (lp.shape  === 'orthogonal') pass(`  shape = "orthogonal" (right-angle connectors) ✓`);
-} else fail('linkpath transform MISSING');
+const linkFormulas = linksDS?.transform?.filter(t => t.type === 'formula').map(t => t.as) || [];
+const hasTreelinks = linksDS?.transform?.some(t => t.type === 'treelinks');
+if (hasTreelinks) pass('treelinks transform present — parent-child pairs generated');
+else fail('treelinks transform MISSING');
+
+const hasPath = linkFormulas.includes('path');
+if (hasPath) {
+  pass('Custom "path" formula present — hand-computed SVG path for T-joint connectors');
+  const pathFormula = linksDS.transform.find(t => t.type === 'formula' && t.as === 'path');
+  // Must contain M, V, H, V commands for stem → fork → bar → drop
+  const expr = pathFormula?.expr || '';
+  if (/['"]\s*M/.test(expr) && / V/.test(expr) && / H/.test(expr))
+    pass('  Path expr uses M/V/H commands for right-angle T-joint connectors ✓');
+  else
+    fail('  Path expr missing expected M/V/H SVG commands for T-joint connectors');
+  // Must reference fork-Y midpoint (fy) and both sx/tx, sy/ty
+  if (linkFormulas.includes('fy'))
+    pass('  Fork-Y midpoint (fy) computed — sibling connectors share horizontal bar ✓');
+  else
+    fail('  Fork-Y midpoint (fy) MISSING — T-joint requires midpoint between parent and children');
+} else {
+  fail('Custom path formula MISSING — links will not render as T-joint connectors');
+}
 
 // ── TEST 6: Field references in spec ──────────────────────────────────────
 section('TEST 6 — Power BI Field References');
@@ -140,10 +149,24 @@ const s = specRaw;
 section('TEST 7 — Interactive Signals');
 const signals = spec.signals || [];
 const sigMap = Object.fromEntries(signals.map(s => [s.name, s]));
-['nodeW','nodeH','hdrH','gapX','gapY','selectedID'].forEach(n => {
-  if (sigMap[n]) pass(`Signal "${n}" = ${JSON.stringify(sigMap[n].value)}`);
-  else fail(`Signal "${n}" MISSING`);
+['hdrH','gapX','selectedID'].forEach(n => {
+  if (sigMap[n]) {
+    const val = sigMap[n].update ?? sigMap[n].value;
+    pass(`Signal "${n}" = ${typeof val === 'string' ? '(reactive)' : JSON.stringify(val)}`);
+  } else fail(`Signal "${n}" MISSING`);
 });
+// nodeW and nodeH must be data pipeline formula transforms, NOT signals
+// (using datum in signal encode channels is invalid Vega 5 — causes Deneb overlap)
+const treeData = (spec.data || []).find(d => d.name === 'tree');
+const treeTransforms = treeData?.transform || [];
+const formulaNames = treeTransforms.filter(t => t.type === 'formula').map(t => t.as);
+['nodeW','nodeH','displayX','displayY','scaleX','scaleY'].forEach(f => {
+  if (formulaNames.includes(f))
+    pass(`"${f}" computed as data formula transform (correct — avoids datum-in-signal bug)`);
+  else
+    fail(`"${f}" NOT found as formula in tree pipeline — nodes may overlap in Deneb`);
+});
+
 const sel = sigMap['selectedID'];
 if (sel?.on?.length > 0 && sel.on[0].events?.includes('click'))
   pass('selectedID click handler configured — card selection is interactive');
@@ -245,12 +268,14 @@ try {
   else
     fail(`Link count: got ${linksData.length}, expected ${expectedLinks}`);
 
-  // Position validity
-  const allHaveXY = treeData.every(d => typeof d.x === 'number' && typeof d.y === 'number');
-  if (allHaveXY) pass('All nodes have valid numeric x/y positions');
-  else fail('Some nodes have missing/NaN x/y positions');
+  // Position validity — support both x/y and rawX/rawY field names
+  const xField = treeData[0] && 'rawX' in treeData[0] ? 'rawX' : 'x';
+  const yField = treeData[0] && 'rawY' in treeData[0] ? 'rawY' : 'y';
+  const allHaveXY = treeData.every(d => typeof d[xField] === 'number' && typeof d[yField] === 'number');
+  if (allHaveXY) pass(`All nodes have valid numeric ${xField}/${yField} positions`);
+  else fail(`Some nodes have missing/NaN ${xField}/${yField} positions`);
 
-  const noNaN = treeData.every(d => !isNaN(d.x) && !isNaN(d.y));
+  const noNaN = treeData.every(d => !isNaN(d[xField]) && !isNaN(d[yField]));
   if (noNaN) pass('No NaN positions detected');
   else fail('NaN positions found — some nodes will not render');
 
@@ -265,22 +290,22 @@ try {
   pass(`Hierarchy spans levels ${minDepth}–${maxDepth} (${maxDepth - minDepth + 1} levels deep)`);
 
   // Layout bounds check
-  const xVals = treeData.map(d => d.x);
-  const yVals = treeData.map(d => d.y);
+  const xVals = treeData.map(d => d[xField]);
+  const yVals = treeData.map(d => d[yField]);
   const xMin = Math.min(...xVals), xMax = Math.max(...xVals);
   const yMin = Math.min(...yVals), yMax = Math.max(...yVals);
   pass(`X spread: ${xMin.toFixed(0)}–${xMax.toFixed(0)}px (canvas width: ${testSpec.width})`);
   pass(`Y spread: ${yMin.toFixed(0)}–${yMax.toFixed(0)}px (canvas height: ${testSpec.height})`);
 
   // Overlap check — no two nodes at identical positions
-  const posSet = new Set(treeData.map(d => `${d.x.toFixed(0)},${d.y.toFixed(0)}`));
+  const posSet = new Set(treeData.map(d => `${d[xField].toFixed(0)},${d[yField].toFixed(0)}`));
   if (posSet.size === treeData.length) pass('No overlapping node positions');
   else warn(`${treeData.length - posSet.size} nodes share positions — may overlap visually`);
 
   // Check root node is Sarah Chen
   const root = treeData.find(d => d.depth === 0);
-  if (root?.Name === 'Sarah Chen') pass(`Root node: "${root.Name}" at top (y=${root.y.toFixed(0)})`);
-  else pass(`Root node: "${root?.Name}" rendered at hierarchy top`);
+  if (root) pass(`Root node: "${root.Name}" at top (${yField}=${root[yField].toFixed(0)})`);
+  else warn('Root node not found in tree data');
 
   // Vega warnings
   if (vegaWarnings.length === 0) pass('No Vega runtime warnings');
@@ -299,11 +324,25 @@ const specStr = specRaw;
 if (!specStr.includes('"hardcoded"') && !specStr.includes("'hardcoded'"))
   pass('No hardcoded data values detected — data comes from Power BI dataset');
 
-if (spec.autosize) pass(`autosize set to "${JSON.stringify(spec.autosize)}" — visual will fit container`);
+// Responsiveness: "none" is correct for Deneb — it lets Deneb set width/height signals directly.
+// Any autosize value other than "fit+contains:padding" avoids shrinking the signals below container size.
+if (spec.autosize === 'none') pass('autosize="none" — Deneb owns sizing; width/height signals = full container ✓');
+else if (spec.autosize) pass(`autosize set to "${JSON.stringify(spec.autosize)}" — visual will fit container`);
 else warn('autosize not set — visual may not resize with Power BI container');
 
-const hasDatumPrefix = /linkpath[^}]*datum\.(source|target)/s.test(specStr);
-if (!hasDatumPrefix) pass('No "datum." prefix in linkpath fields — Vega field refs are correct');
+// Padding should be 0 so the background fills edge-to-edge and no empty border clips the chart
+const pad = spec.padding;
+const isZeroPad = pad === 0 || pad === undefined || (typeof pad === 'object' && !Object.values(pad).some(v => v > 0));
+if (isZeroPad) pass('padding=0 — chart fills the full Deneb visual container ✓');
+else warn(`padding=${JSON.stringify(pad)} — may leave empty border around chart; set to 0 for full-bleed`);
+
+// hMargin signal provides internal left/right breathing room replacing removed padding
+if (spec.signals?.some(s => s.name === 'hMargin'))
+  pass('hMargin signal present — internal horizontal margin keeps nodes off visual edges ✓');
+else warn('hMargin signal missing — leftmost/rightmost nodes may touch the visual edges');
+
+const hasLinkpathDatumBug = /linkpath[^}]*datum\.(source|target)/s.test(specStr);
+if (!hasLinkpathDatumBug) pass('No linkpath/datum prefix bug — connector field refs are correct');
 else fail('Found "datum." prefix in linkpath fields — must use bare dot-path (e.g. "source.x")');
 
 if (spec.background) pass(`Background color set: "${spec.background}"`);

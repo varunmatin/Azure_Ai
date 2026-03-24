@@ -1,0 +1,122 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "width": 800,
+  "height": 500,
+  "padding": 20,
+  "background": "#F1F5F9",
+
+  "signals": [
+    {"name": "rowCount",    "update": "length(data('dataset'))"},
+    {"name": "firstRow",    "update": "rowCount > 0 ? data('dataset')[0] : {}"},
+    {"name": "fieldNames",  "update": "rowCount > 0 ? keys(data('dataset')[0]) : []"},
+    {"name": "firstEmpID",  "update": "rowCount > 0 ? data('dataset')[0].EmployeeID : 'NOT FOUND'"},
+    {"name": "firstMgrID",  "update": "rowCount > 0 ? data('dataset')[0].ManagerID  : 'NOT FOUND'"},
+    {"name": "firstName",   "update": "rowCount > 0 ? data('dataset')[0].Name        : 'NOT FOUND'"}
+  ],
+
+  "data": [{"name": "dataset"}],
+
+  "marks": [
+    {
+      "type": "rect",
+      "encode": {
+        "enter": {
+          "x": {"value": 10}, "y": {"value": 10},
+          "width": {"value": 780}, "height": {"value": 480},
+          "rx": {"value": 10}, "fill": {"value": "#FFFFFF"},
+          "stroke": {"value": "#CBD5E1"}, "strokeWidth": {"value": 1}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 400}, "y": {"value": 45},
+          "text": {"value": "Deneb Diagnostic — Data Inspector"},
+          "align": {"value": "center"}, "fontSize": {"value": 20},
+          "fontWeight": {"value": "bold"}, "fill": {"value": "#1E3A5F"},
+          "font": {"value": "Segoe UI, sans-serif"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": {"value": 30}, "y": {"value": 90},
+          "text": {"signal": "'✦ Rows received from Power BI: ' + rowCount"},
+          "fontSize": {"value": 14}, "fill": {"signal": "rowCount > 0 ? '#059669' : '#DC2626'"},
+          "fontWeight": {"value": "bold"}, "font": {"value": "Segoe UI, sans-serif"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": {"value": 30}, "y": {"value": 130},
+          "text": {"signal": "'✦ Column names in first row: ' + (rowCount > 0 ? join(fieldNames, '  |  ') : 'no data')"},
+          "fontSize": {"value": 12}, "fill": {"value": "#1D4ED8"},
+          "font": {"value": "Segoe UI, sans-serif"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": {"value": 30}, "y": {"value": 175},
+          "text": {"signal": "'✦ datum.EmployeeID  = ' + firstEmpID"},
+          "fontSize": {"value": 12}, "fill": {"value": "#334155"},
+          "font": {"value": "Segoe UI, sans-serif"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": {"value": 30}, "y": {"value": 205},
+          "text": {"signal": "'✦ datum.ManagerID   = ' + firstMgrID"},
+          "fontSize": {"value": 12}, "fill": {"value": "#334155"},
+          "font": {"value": "Segoe UI, sans-serif"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": {"value": 30}, "y": {"value": 235},
+          "text": {"signal": "'✦ datum.Name        = ' + firstName"},
+          "fontSize": {"value": 12}, "fill": {"value": "#334155"},
+          "font": {"value": "Segoe UI, sans-serif"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": {"value": 30}, "y": {"value": 290},
+          "text": {"signal": "rowCount === 0 ? '⚠ No rows — drag all 6 fields into the Deneb Values well' : (firstEmpID === 'NOT FOUND' || firstEmpID == null ? '⚠ EmployeeID column NOT found — check column name spelling' : '✔ Data looks good — use org_hierarchy_vega_template.json')"},
+          "fontSize": {"value": 14},
+          "fill": {"signal": "rowCount === 0 ? '#DC2626' : (firstEmpID === 'NOT FOUND' || firstEmpID == null ? '#D97706' : '#059669')"},
+          "fontWeight": {"value": "bold"}, "font": {"value": "Segoe UI, sans-serif"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 30}, "y": {"value": 340},
+          "text": {"value": "Required column names (must match exactly):   EmployeeID   ManagerID   Name   Title   Department   Location"},
+          "fontSize": {"value": 11}, "fill": {"value": "#64748B"},
+          "font": {"value": "Segoe UI, sans-serif"}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,603 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "Power BI Org Hierarchy — Employee Detail Panel. Place next to the hierarchy visual; Power BI cross-filters this to show the selected employee.",
+  "padding": 0,
+  "background": "#F1F5F9",
+  "autosize": "none",
+
+  "signals": [
+    {"name": "pad",   "value": 10},
+    {"name": "hdrH",  "value": 96},
+    {"name": "lpad",  "value": 20},
+
+    {
+      "name": "emp",
+      "update": "length(data('dataset')) > 0 ? data('dataset')[0] : {}"
+    },
+    {
+      "name": "hasData",
+      "update": "length(data('dataset')) > 0 && data('dataset')[0].EmployeeID != null && data('dataset')[0].EmployeeID !== ''"
+    },
+
+    {
+      "name": "accent",
+      "update": "emp.depth === 0 ? '#1E3A5F' : emp.depth === 1 ? '#1D4ED8' : emp.depth === 2 ? '#0284C7' : emp.depth === 3 ? '#059669' : emp.depth === 4 ? '#7C3AED' : '#1E3A5F'"
+    },
+    {
+      "name": "accentLight",
+      "update": "emp.depth === 0 ? '#EFF6FF' : emp.depth === 1 ? '#EFF6FF' : emp.depth === 2 ? '#F0F9FF' : emp.depth === 3 ? '#ECFDF5' : emp.depth === 4 ? '#F5F3FF' : '#EFF6FF'"
+    },
+    {
+      "name": "accentMid",
+      "update": "emp.depth === 0 ? '#93C5FD' : emp.depth === 1 ? '#93C5FD' : emp.depth === 2 ? '#7DD3FC' : emp.depth === 3 ? '#6EE7B7' : emp.depth === 4 ? '#C4B5FD' : '#93C5FD'"
+    },
+    {
+      "name": "levelLabel",
+      "update": "emp.depth === 0 ? '▸ C-SUITE' : emp.depth === 1 ? '▸ VP / SVP' : emp.depth === 2 ? '▸ DIRECTOR' : emp.depth === 3 ? '▸ MANAGER' : emp.depth === 4 ? '▸ INDIVIDUAL CONTRIBUTOR' : '▸ EMPLOYEE'"
+    },
+    {
+      "name": "metricItems",
+      "update": "hasData && emp['Metric Field'] != null && emp['Metric Field'] !== '' ? split(replace(replace('' + emp['Metric Field'], ' ,', ','), ', ', ','), ',') : ['—']"
+    },
+    {
+      "name": "metricBoxH",
+      "update": "length(metricItems) * 20 + 16"
+    },
+
+    {"name": "cardX",  "update": "pad"},
+    {"name": "cardY",  "update": "pad"},
+    {"name": "cardW",  "update": "width  - pad * 2"},
+    {"name": "cardH",  "update": "height - pad * 2"}
+  ],
+
+  "data": [{"name": "dataset"}],
+
+  "marks": [
+
+    {
+      "description": "Canvas background",
+      "type": "rect",
+      "interactive": false,
+      "encode": {
+        "update": {
+          "x":      {"value": 0},
+          "y":      {"value": 0},
+          "width":  {"signal": "width"},
+          "height": {"signal": "height"},
+          "fill":   {"value": "#F1F5F9"}
+        }
+      }
+    },
+
+
+    {
+      "description": "=== EMPTY STATE ===",
+      "type": "group",
+      "encode": {
+        "update": {
+          "x":       {"value": 0},
+          "y":       {"value": 0},
+          "width":   {"signal": "width"},
+          "height":  {"signal": "height"},
+          "opacity": {"signal": "hasData ? 0 : 1"}
+        }
+      },
+      "marks": [
+
+        {
+          "description": "Card shadow",
+          "type": "rect",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":           {"signal": "cardX + 2"},
+              "y":           {"signal": "cardY + 2"},
+              "width":       {"signal": "cardW"},
+              "height":      {"signal": "cardH"},
+              "rx":          {"value": 12},
+              "fill":        {"value": "#00000012"}
+            }
+          }
+        },
+        {
+          "description": "Card body",
+          "type": "rect",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":           {"signal": "cardX"},
+              "y":           {"signal": "cardY"},
+              "width":       {"signal": "cardW"},
+              "height":      {"signal": "cardH"},
+              "rx":          {"value": 12},
+              "fill":        {"value": "#FFFFFF"},
+              "stroke":      {"value": "#E2E8F0"},
+              "strokeWidth": {"value": 1}
+            }
+          }
+        },
+        {
+          "description": "Top accent stripe",
+          "type": "rect",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":      {"signal": "cardX"},
+              "y":      {"signal": "cardY"},
+              "width":  {"signal": "cardW"},
+              "height": {"value": 4},
+              "rx":     {"value": 12},
+              "fill":   {"value": "#1E3A5F"}
+            }
+          }
+        },
+
+        {
+          "description": "Empty icon ring outer",
+          "type": "symbol",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":           {"signal": "width / 2"},
+              "y":           {"signal": "height / 2 - 36"},
+              "shape":       {"value": "circle"},
+              "size":        {"value": 3200},
+              "fill":        {"value": "#EFF6FF"},
+              "stroke":      {"value": "#BFDBFE"},
+              "strokeWidth": {"value": 2}
+            }
+          }
+        },
+        {
+          "description": "Empty icon ring inner",
+          "type": "symbol",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":    {"signal": "width / 2"},
+              "y":    {"signal": "height / 2 - 36"},
+              "shape":{"value": "circle"},
+              "size": {"value": 1400},
+              "fill": {"value": "#DBEAFE"}
+            }
+          }
+        },
+        {
+          "description": "Empty icon glyph",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":        {"signal": "width / 2"},
+              "y":        {"signal": "height / 2 - 29"},
+              "text":     {"value": "◎"},
+              "align":    {"value": "center"},
+              "baseline": {"value": "middle"},
+              "fill":     {"value": "#1D4ED8"},
+              "fontSize": {"value": 22},
+              "font":     {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        },
+
+        {
+          "description": "Empty headline",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":          {"signal": "width / 2"},
+              "y":          {"signal": "height / 2 + 12"},
+              "text":       {"value": "No employee selected"},
+              "align":      {"value": "center"},
+              "fill":       {"value": "#1E3A5F"},
+              "fontSize":   {"value": 13},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        },
+        {
+          "description": "Empty sub-line",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":        {"signal": "width / 2"},
+              "y":        {"signal": "height / 2 + 30"},
+              "text":     {"value": "Click a node in the hierarchy"},
+              "align":    {"value": "center"},
+              "fill":     {"value": "#94A3B8"},
+              "fontSize": {"value": 10},
+              "font":     {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        },
+        {
+          "description": "Empty sub-line 2",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":        {"signal": "width / 2"},
+              "y":        {"signal": "height / 2 + 44"},
+              "text":     {"value": "to view employee details here"},
+              "align":    {"value": "center"},
+              "fill":     {"value": "#94A3B8"},
+              "fontSize": {"value": 10},
+              "font":     {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        }
+      ]
+    },
+
+
+    {
+      "description": "=== DATA STATE ===",
+      "type": "group",
+      "encode": {
+        "update": {
+          "x":       {"value": 0},
+          "y":       {"value": 0},
+          "width":   {"signal": "width"},
+          "height":  {"signal": "height"},
+          "opacity": {"signal": "hasData ? 1 : 0"}
+        }
+      },
+      "marks": [
+
+        {
+          "description": "Card shadow",
+          "type": "rect",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":      {"signal": "cardX + 2"},
+              "y":      {"signal": "cardY + 2"},
+              "width":  {"signal": "cardW"},
+              "height": {"signal": "cardH"},
+              "rx":     {"value": 12},
+              "fill":   {"value": "#00000012"}
+            }
+          }
+        },
+        {
+          "description": "Card body",
+          "type": "rect",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":           {"signal": "cardX"},
+              "y":           {"signal": "cardY"},
+              "width":       {"signal": "cardW"},
+              "height":      {"signal": "cardH"},
+              "rx":          {"value": 12},
+              "fill":        {"value": "#FFFFFF"},
+              "stroke":      {"value": "#E2E8F0"},
+              "strokeWidth": {"value": 1}
+            }
+          }
+        },
+
+        {
+          "description": "Header background",
+          "type": "rect",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":      {"signal": "cardX"},
+              "y":      {"signal": "cardY"},
+              "width":  {"signal": "cardW"},
+              "height": {"signal": "hdrH"},
+              "rx":     {"value": 12},
+              "fill":   {"signal": "accent"}
+            }
+          }
+        },
+        {
+          "description": "Header bottom square-off",
+          "type": "rect",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":      {"signal": "cardX"},
+              "y":      {"signal": "cardY + hdrH - 12"},
+              "width":  {"signal": "cardW"},
+              "height": {"value": 12},
+              "fill":   {"signal": "accent"}
+            }
+          }
+        },
+
+        {
+          "description": "Level label",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":          {"signal": "cardX + lpad"},
+              "y":          {"signal": "cardY + 18"},
+              "text":       {"signal": "levelLabel"},
+              "fill":       {"value": "#FFFFFF70"},
+              "fontSize":   {"value": 8},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"},
+              "limit":      {"signal": "cardW - lpad * 2"}
+            }
+          }
+        },
+
+        {
+          "description": "Name",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":          {"signal": "cardX + lpad"},
+              "y":          {"signal": "cardY + 44"},
+              "text":       {"signal": "emp.Name || ''"},
+              "fill":       {"value": "#FFFFFF"},
+              "fontSize":   {"value": 15},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"},
+              "limit":      {"signal": "cardW - lpad * 2"}
+            }
+          }
+        },
+
+        {
+          "description": "Title",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":        {"signal": "cardX + lpad"},
+              "y":        {"signal": "cardY + 62"},
+              "text":     {"signal": "emp.Title || ''"},
+              "fill":     {"signal": "accentMid"},
+              "fontSize": {"value": 10},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "limit":    {"signal": "cardW - lpad * 2"}
+            }
+          }
+        },
+
+        {
+          "description": "Header bottom divider line",
+          "type": "rule",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":           {"signal": "cardX + lpad"},
+              "x2":          {"signal": "cardX + cardW - lpad"},
+              "y":           {"signal": "cardY + hdrH + 14"},
+              "stroke":      {"value": "#E2E8F0"},
+              "strokeWidth": {"value": 0.75}
+            }
+          }
+        },
+
+
+        {
+          "description": "Employee ID — label",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":          {"signal": "cardX + lpad"},
+              "y":          {"signal": "cardY + hdrH + 28"},
+              "text":       {"value": "EMPLOYEE ID"},
+              "fill":       {"value": "#94A3B8"},
+              "fontSize":   {"value": 8},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        },
+        {
+          "description": "Employee ID — value",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":          {"signal": "cardX + lpad"},
+              "y":          {"signal": "cardY + hdrH + 44"},
+              "text":       {"signal": "'' + (emp.EmployeeID || '')"},
+              "fill":       {"value": "#0F172A"},
+              "fontSize":   {"value": 12},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"},
+              "limit":      {"signal": "cardW - lpad * 2"}
+            }
+          }
+        },
+
+        {
+          "description": "Divider 1",
+          "type": "rule",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":           {"signal": "cardX + lpad"},
+              "x2":          {"signal": "cardX + cardW - lpad"},
+              "y":           {"signal": "cardY + hdrH + 56"},
+              "stroke":      {"value": "#F1F5F9"},
+              "strokeWidth": {"value": 1}
+            }
+          }
+        },
+
+
+        {
+          "description": "Department — label",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":          {"signal": "cardX + lpad"},
+              "y":          {"signal": "cardY + hdrH + 70"},
+              "text":       {"value": "DEPARTMENT"},
+              "fill":       {"value": "#94A3B8"},
+              "fontSize":   {"value": 8},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        },
+        {
+          "description": "Department — value",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":        {"signal": "cardX + lpad"},
+              "y":        {"signal": "cardY + hdrH + 85"},
+              "text":     {"signal": "emp.Department || '—'"},
+              "fill":     {"value": "#334155"},
+              "fontSize": {"value": 11},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "limit":    {"signal": "cardW - lpad * 2"}
+            }
+          }
+        },
+
+        {
+          "description": "Divider 2",
+          "type": "rule",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":           {"signal": "cardX + lpad"},
+              "x2":          {"signal": "cardX + cardW - lpad"},
+              "y":           {"signal": "cardY + hdrH + 98"},
+              "stroke":      {"value": "#F1F5F9"},
+              "strokeWidth": {"value": 1}
+            }
+          }
+        },
+
+
+        {
+          "description": "Location — label",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":          {"signal": "cardX + lpad"},
+              "y":          {"signal": "cardY + hdrH + 112"},
+              "text":       {"value": "LOCATION"},
+              "fill":       {"value": "#94A3B8"},
+              "fontSize":   {"value": 8},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        },
+        {
+          "description": "Location — value",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":        {"signal": "cardX + lpad"},
+              "y":        {"signal": "cardY + hdrH + 127"},
+              "text":     {"signal": "emp.Location || '—'"},
+              "fill":     {"value": "#334155"},
+              "fontSize": {"value": 11},
+              "font":     {"value": "Segoe UI, sans-serif"},
+              "limit":    {"signal": "cardW - lpad * 2"}
+            }
+          }
+        },
+
+        {
+          "description": "Section divider (heavier)",
+          "type": "rule",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":           {"signal": "cardX + lpad"},
+              "x2":          {"signal": "cardX + cardW - lpad"},
+              "y":           {"signal": "cardY + hdrH + 144"},
+              "stroke":      {"value": "#CBD5E1"},
+              "strokeWidth": {"value": 1}
+            }
+          }
+        },
+
+
+        {
+          "description": "Metric Field — label",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":          {"signal": "cardX + lpad"},
+              "y":          {"signal": "cardY + hdrH + 158"},
+              "text":       {"value": "METRIC FIELD"},
+              "fill":       {"value": "#64748B"},
+              "fontSize":   {"value": 8},
+              "fontWeight": {"value": "bold"},
+              "font":       {"value": "Segoe UI, sans-serif"}
+            }
+          }
+        },
+
+        {
+          "description": "Metric Field — pill background",
+          "type": "rect",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":           {"signal": "cardX + lpad"},
+              "y":           {"signal": "cardY + hdrH + 166"},
+              "width":       {"signal": "cardW - lpad * 2"},
+              "height":      {"signal": "metricBoxH"},
+              "rx":          {"value": 8},
+              "fill":        {"signal": "accentLight"},
+              "stroke":      {"signal": "accentMid"},
+              "strokeWidth": {"value": 1}
+            }
+          }
+        },
+        {
+          "description": "Metric Field — left accent bar",
+          "type": "rect",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":      {"signal": "cardX + lpad"},
+              "y":      {"signal": "cardY + hdrH + 166"},
+              "width":  {"value": 4},
+              "height": {"signal": "metricBoxH"},
+              "rx":     {"value": 8},
+              "fill":   {"signal": "accent"}
+            }
+          }
+        },
+        {
+          "description": "Metric Field — values",
+          "type": "text",
+          "interactive": false,
+          "encode": {
+            "update": {
+              "x":          {"signal": "cardX + lpad + 14"},
+              "y":          {"signal": "cardY + hdrH + 174"},
+              "text":       {"signal": "metricItems"},
+              "fill":       {"signal": "accent"},
+              "fontSize":   {"value": 11},
+              "fontWeight": {"value": "600"},
+              "baseline":   {"value": "top"},
+              "lineHeight": {"value": 20},
+              "font":       {"value": "Segoe UI, sans-serif"},
+              "limit":      {"signal": "cardW - lpad * 2 - 20"}
+            }
+          }
+        }
+
+      ]
+    }
+
+  ]
+}
