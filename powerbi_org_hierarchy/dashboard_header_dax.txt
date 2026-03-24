@@ -53,8 +53,6 @@ Header HTML =
 "<span class=""title"">Unified Data View</span>" &
 "</div></div>" &
 "<div class=""divider""></div>" &
-"<span class=""scope"">Enterprise &nbsp;&middot;&nbsp; All Levels &nbsp;&middot;&nbsp; Live</span>" &
-"<div class=""divider""></div>" &
 "<div class=""legend"">" &
 "<div class=""tier""><div class=""swatch t0""></div><span class=""tier-label t0-txt"">C-Suite</span></div>" &
 "<div class=""tier""><div class=""swatch t1""></div><span class=""tier-label t1-txt"">VP / SVP</span></div>" &
