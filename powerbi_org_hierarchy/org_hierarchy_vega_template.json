@@ -14,12 +14,20 @@
     {"name": "gapX",    "value": 10},
     {"name": "hMargin", "value": 6},
     {
-      "name": "selectedID",
-      "value": "",
+      "name": "pbiCrossFilterApply",
       "on": [
         {
           "events": {"type": "click", "markname": "nodeHitArea"},
-          "update": "datum.EmployeeID != selectedID ? datum.EmployeeID : ''"
+          "force": true
+        }
+      ]
+    },
+    {
+      "name": "pbiCrossFilterClear",
+      "on": [
+        {
+          "events": "view:mousedown[!event.item]",
+          "force": true
         }
       ]
     },
@@ -215,8 +223,8 @@
               "width":       {"signal": "parent.nodeW"},
               "height":      {"signal": "parent.nodeH"},
               "fill":        {"value": "#FFFFFF"},
-              "stroke":      {"signal": "parent.EmployeeID == selectedID ? '#F97316' : '#CBD5E1'"},
-              "strokeWidth": {"signal": "parent.EmployeeID == selectedID ? 2.5 : 1"}
+              "stroke":      {"signal": "parent.__selected__ == 'on' ? '#F97316' : '#CBD5E1'"},
+              "strokeWidth": {"signal": "parent.__selected__ == 'on' ? 2.5 : 1"}
             }
           }
         },
