@@ -29,12 +29,8 @@
     },
     {"name": "panelW", "value": 240},
     {
-      "name": "panelTarget",
-      "update": "selectedID != '' ? width - panelW : width"
-    },
-    {
       "name": "panelX",
-      "update": "panelTarget"
+      "update": "width - panelW"
     },
     {
       "name": "treeWidth",
@@ -426,11 +422,12 @@
       "type": "group",
       "encode": {
         "update": {
-          "x":      {"signal": "panelX"},
-          "y":      {"value": 0},
-          "width":  {"signal": "panelW"},
-          "height": {"signal": "height"},
-          "clip":   {"value": true}
+          "x":       {"signal": "panelX"},
+          "y":       {"value": 0},
+          "width":   {"signal": "panelW"},
+          "height":  {"signal": "height"},
+          "clip":    {"value": true},
+          "opacity": {"signal": "selectedID != '' ? 1 : 0"}
         }
       },
       "marks": [
