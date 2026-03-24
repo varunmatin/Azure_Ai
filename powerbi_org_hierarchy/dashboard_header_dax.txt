@@ -14,17 +14,16 @@ Header HTML =
 "*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}" &
 "html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',Tahoma,sans-serif;-webkit-font-smoothing:antialiased;}" &
 "body{background:#FFFFFF;}" &
-".header{display:flex;align-items:stretch;width:100%;height:100%;background:#FFFFFF;border:1px solid #CBD5E1;border-radius:7px;overflow:hidden;box-shadow:2px 2px 0 #00000015;}" &
-".band{width:8px;flex-shrink:0;background:#1E3A5F;}" &
-".body{flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 18px 0 14px;gap:16px;}" &
-".left{display:flex;align-items:center;gap:10px;flex-shrink:0;}" &
-".icon-wrap{width:34px;height:34px;border-radius:6px;background:#1E3A5F;display:flex;align-items:center;justify-content:center;flex-shrink:0;}" &
-".icon-wrap svg{width:18px;height:18px;}" &
+".header{display:flex;align-items:stretch;width:100%;height:70px;background:#FFFFFF;border:1px solid #CBD5E1;border-radius:7px;overflow:hidden;box-shadow:2px 2px 0 #00000015;}" &
+".band{width:7px;flex-shrink:0;background:#1E3A5F;}" &
+".body{flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 14px 0 12px;gap:12px;}" &
+".left{display:flex;align-items:center;gap:8px;flex-shrink:0;}" &
+".icon-wrap{width:28px;height:28px;border-radius:5px;background:#1E3A5F;display:flex;align-items:center;justify-content:center;flex-shrink:0;}" &
+".icon-wrap svg{width:14px;height:14px;}" &
 ".titles{display:flex;flex-direction:column;gap:1px;}" &
 ".badge{display:inline-block;font-size:7px;font-weight:700;color:#DBEAFE;text-transform:uppercase;letter-spacing:1.1px;background:#1E3A5F;border-radius:3px;padding:1px 5px;align-self:flex-start;margin-bottom:2px;}" &
-".title{font-size:17px;font-weight:700;color:#0F172A;letter-spacing:-0.3px;line-height:1.1;white-space:nowrap;}" &
-".subtitle{font-size:9px;color:#334155;white-space:nowrap;}" &
-".divider{width:1px;height:28px;background:#E2E8F0;flex-shrink:0;}" &
+".title{font-size:14px;font-weight:700;color:#0F172A;letter-spacing:-0.3px;line-height:1.1;white-space:nowrap;}" &
+".divider{width:1px;height:22px;background:#E2E8F0;flex-shrink:0;}" &
 ".scope{font-size:9px;font-style:italic;color:#64748B;white-space:nowrap;flex-shrink:0;}" &
 ".legend{display:flex;align-items:center;gap:8px;flex-shrink:0;}" &
 ".tier{display:flex;align-items:center;gap:4px;padding:3px 7px;border-radius:4px;border:1px solid #CBD5E1;background:#F8FAFC;}" &
@@ -52,10 +51,9 @@ Header HTML =
 "<div class=""titles"">" &
 "<span class=""badge"">&#9658; DASHBOARD</span>" &
 "<span class=""title"">Unified Data View</span>" &
-"<span class=""subtitle"">Organization Intelligence</span>" &
 "</div></div>" &
 "<div class=""divider""></div>" &
-"<span class=""scope"">Enterprise &amp;nbsp;&middot;&amp;nbsp; All Levels &amp;nbsp;&middot;&amp;nbsp; Live</span>" &
+"<span class=""scope"">Enterprise &nbsp;&middot;&nbsp; All Levels &nbsp;&middot;&nbsp; Live</span>" &
 "<div class=""divider""></div>" &
 "<div class=""legend"">" &
 "<div class=""tier""><div class=""swatch t0""></div><span class=""tier-label t0-txt"">C-Suite</span></div>" &
