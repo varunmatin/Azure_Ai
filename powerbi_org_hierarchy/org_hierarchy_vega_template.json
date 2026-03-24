@@ -18,6 +18,7 @@
       "on": [
         {
           "events": {"type": "click", "markname": "nodeHitArea"},
+          "update": "true",
           "force": true
         }
       ]
@@ -27,6 +28,7 @@
       "on": [
         {
           "events": "view:mousedown[!event.item]",
+          "update": "true",
           "force": true
         }
       ]
