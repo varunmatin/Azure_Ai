@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #eef3fb;
+  }
+
+  /* ── Outer wrapper ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding: 0 28px;
+    background: linear-gradient(135deg, #1b2e55 0%, #1e3a6e 60%, #1a4080 100%);
+    border-bottom: 3px solid #1d4ed8;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Decorative arc (mirrors the org chart's rounded card aesthetic) ── */
+  .header::before {
+    content: '';
+    position: absolute;
+    right: -80px;
+    top: -80px;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    pointer-events: none;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    right: 60px;
+    bottom: -100px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+    pointer-events: none;
+  }
+
+  /* ── Left: icon + title block ── */
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    z-index: 1;
+  }
+
+  .header-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Simple grid-of-dots icon — echoes the org-chart node motif */
+  .header-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .header-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.4px;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .header-subtitle {
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    white-space: nowrap;
+  }
+
+  /* ── Center: vertical rule + scope text ── */
+  .header-center {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    z-index: 1;
+  }
+
+  .vr {
+    width: 1px;
+    height: 32px;
+    background: rgba(255,255,255,0.18);
+    flex-shrink: 0;
+  }
+
+  .scope-text {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.60);
+    white-space: nowrap;
+  }
+
+  /* ── Right: tier legend ── */
+  .tier-legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1;
+  }
+
+  .tier-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.13);
+  }
+
+  .tier-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .tier-label {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.80);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+  }
+
+  /* Tier colours — exact match to the org chart legend */
+  .dot-csuite      { background: #1b2e55; border: 1.5px solid #6b7caa; }
+  .dot-vp          { background: #1d4ed8; }
+  .dot-director    { background: #16a34a; }
+  .dot-manager     { background: #7c3aed; }
+  .dot-ic          { background: #9ca3af; }
+
+</style>
+</head>
+<body>
+<header class="header">
+
+  <!-- LEFT: brand mark + title -->
+  <div class="header-left">
+    <div class="header-icon">
+      <!-- hierarchy / org-tree SVG icon -->
+      <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7" y="1" width="6" height="4.5" rx="1.2" fill="rgba(255,255,255,0.9)"/>
+        <rect x="1" y="13.5" width="5.5" height="4" rx="1" fill="rgba(255,255,255,0.75)"/>
+        <rect x="7.25" y="13.5" width="5.5" height="4" rx="1" fill="rgba(255,255,255,0.75)"/>
+        <rect x="13.5" y="13.5" width="5.5" height="4" rx="1" fill="rgba(255,255,255,0.75)"/>
+        <!-- connector lines -->
+        <line x1="10" y1="5.5" x2="10" y2="9"   stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
+        <line x1="3.75" y1="9" x2="16.25" y2="9"  stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
+        <line x1="3.75"  y1="9" x2="3.75"  y2="13.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
+        <line x1="10"    y1="9" x2="10"    y2="13.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
+        <line x1="16.25" y1="9" x2="16.25" y2="13.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
+      </svg>
+    </div>
+
+    <div class="header-titles">
+      <span class="header-title">Unified Data View</span>
+      <span class="header-subtitle">Organization Intelligence Dashboard</span>
+    </div>
+  </div>
+
+  <!-- CENTER: divider + context label -->
+  <div class="header-center">
+    <div class="vr"></div>
+    <span class="scope-text">Enterprise · All Levels · Live</span>
+  </div>
+
+  <!-- RIGHT: tier colour legend -->
+  <div class="tier-legend">
+    <div class="tier-pill">
+      <div class="tier-dot dot-csuite"></div>
+      <span class="tier-label">C-Suite</span>
+    </div>
+    <div class="tier-pill">
+      <div class="tier-dot dot-vp"></div>
+      <span class="tier-label">VP / EVP</span>
+    </div>
+    <div class="tier-pill">
+      <div class="tier-dot dot-director"></div>
+      <span class="tier-label">Director</span>
+    </div>
+    <div class="tier-pill">
+      <div class="tier-dot dot-manager"></div>
+      <span class="tier-label">Manager</span>
+    </div>
+    <div class="tier-pill">
+      <div class="tier-dot dot-ic"></div>
+      <span class="tier-label">IC</span>
+    </div>
+  </div>
+
+</header>
+</body>
+</html>
