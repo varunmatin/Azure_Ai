@@ -37,6 +37,10 @@
       "update": "panelTarget"
     },
     {
+      "name": "treeWidth",
+      "update": "selectedID != '' ? width - panelW : width"
+    },
+    {
       "name": "selNode",
       "value": {},
       "on": [
@@ -109,7 +113,7 @@
         {
           "type": "formula",
           "as": "nodeW",
-          "expr": "datum.minRawXGap > 0 ? max(20, floor((datum.minRawXGap * (width - 2*hMargin) - gapX * 1000) / (1000 + datum.minRawXGap))) : max(20, floor((width - 2*hMargin) / max(datum.maxLevelCount, 1)))"
+          "expr": "datum.minRawXGap > 0 ? max(20, floor((datum.minRawXGap * (treeWidth - 2*hMargin) - gapX * 1000) / (1000 + datum.minRawXGap))) : max(20, floor((treeWidth - 2*hMargin) / max(datum.maxLevelCount, 1)))"
         },
         {
           "type": "formula",
@@ -120,7 +124,7 @@
         {
           "type": "formula",
           "as": "scaleX",
-          "expr": "(width - 2*hMargin - datum.nodeW) / 1000"
+          "expr": "(treeWidth - 2*hMargin - datum.nodeW) / 1000"
         },
         {
           "type": "formula",
@@ -147,7 +151,7 @@
         {"type": "treelinks"},
         {
           "type": "formula", "as": "sx",
-          "expr": "datum.source.rawX * (width - 2*hMargin - datum.source.nodeW) / 1000 + hMargin + datum.source.nodeW / 2"
+          "expr": "datum.source.rawX * (treeWidth - 2*hMargin - datum.source.nodeW) / 1000 + hMargin + datum.source.nodeW / 2"
         },
         {
           "type": "formula", "as": "sy",
@@ -155,7 +159,7 @@
         },
         {
           "type": "formula", "as": "tx",
-          "expr": "datum.target.rawX * (width - 2*hMargin - datum.target.nodeW) / 1000 + hMargin + datum.target.nodeW / 2"
+          "expr": "datum.target.rawX * (treeWidth - 2*hMargin - datum.target.nodeW) / 1000 + hMargin + datum.target.nodeW / 2"
         },
         {
           "type": "formula", "as": "ty",
