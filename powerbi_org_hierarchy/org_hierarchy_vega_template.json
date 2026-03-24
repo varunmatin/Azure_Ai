@@ -4,12 +4,12 @@
   "width": 1200,
   "height": 700,
   "padding": 0,
-  "background": "#EEF2F7",
+  "background": "#FFFFFF",
   "autosize": "none",
 
   "signals": [
-    {"name": "titleH",  "value": 50},
-    {"name": "legendH", "value": 20},
+    {"name": "titleH",  "value": 10},
+    {"name": "legendH", "value": 36},
     {"name": "hdrH",    "value": 22},
     {"name": "gapX",    "value": 10},
     {"name": "hMargin", "value": 6},
@@ -20,6 +20,10 @@
         {
           "events": {"type": "click", "markname": "nodeHitArea"},
           "update": "datum.EmployeeID != selectedID ? datum.EmployeeID : ''"
+        },
+        {
+          "events": {"type": "click", "markname": "closeBtn"},
+          "update": "''"
         }
       ]
     },
@@ -171,35 +175,6 @@
 
   "marks": [
 
-    {
-      "type": "text",
-      "encode": {
-        "update": {
-          "x":          {"signal": "width / 2"},
-          "y":          {"value": 18},
-          "text":       {"value": "Organization Hierarchy"},
-          "align":      {"value": "center"},
-          "fill":       {"value": "#1E3A5F"},
-          "fontSize":   {"value": 20},
-          "fontWeight": {"value": "bold"},
-          "font":       {"value": "Segoe UI, sans-serif"}
-        }
-      }
-    },
-    {
-      "type": "text",
-      "encode": {
-        "update": {
-          "x":        {"signal": "width / 2"},
-          "y":        {"value": 38},
-          "text":     {"value": "Click a card to view details  •  Click again to close"},
-          "align":    {"value": "center"},
-          "fill":     {"value": "#64748B"},
-          "fontSize": {"value": 10},
-          "font":     {"value": "Segoe UI, sans-serif"}
-        }
-      }
-    },
 
     {
       "type": "path",
@@ -502,6 +477,7 @@
         },
 
         {
+          "name": "closeBtn",
           "type": "text",
           "encode": {
             "update": {
@@ -509,11 +485,12 @@
               "y":          {"value": 16},
               "text":       {"value": "✕"},
               "fill":       {"value": "#93C5FD"},
-              "fontSize":   {"value": 11},
+              "fontSize":   {"value": 14},
+              "fontWeight": {"value": "bold"},
               "align":      {"value": "right"},
               "font":       {"value": "Segoe UI, sans-serif"},
               "cursor":     {"value": "pointer"},
-              "tooltip":    {"value": "Click node again to close"}
+              "tooltip":    {"value": "Close panel"}
             }
           }
         },
