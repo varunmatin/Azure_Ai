@@ -26,57 +26,7 @@
     height: 700px;
     background: #ffffff;
     overflow: hidden;
-  }
-
-  /* ── Brand Header ── */
-  .brand-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 14px 12px;
-    border-bottom: 1px solid rgba(124,58,237,0.10);
-    flex-shrink: 0;
-  }
-
-  .logo-mark {
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
-    background: linear-gradient(145deg, #7c3aed 0%, #6d28d9 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    font-size: 17px;
-    font-weight: 800;
-    flex-shrink: 0;
-    letter-spacing: -1px;
-    box-shadow: 0 2px 8px rgba(124,58,237,0.30);
-  }
-
-  .brand-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    overflow: hidden;
-  }
-
-  .brand-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #1a0533;
-    letter-spacing: -0.4px;
-    white-space: nowrap;
-  }
-
-  .brand-subtitle {
-    font-size: 7.5px;
-    font-weight: 600;
-    color: rgba(0,0,0,0.38);
-    text-transform: uppercase;
-    letter-spacing: 0.9px;
-    font-family: 'Courier New', Courier, monospace;
-    white-space: nowrap;
+    padding: 16px 0 12px;
   }
 
   /* ── Section Label ── */
@@ -85,7 +35,7 @@
     align-items: center;
     gap: 7px;
     padding: 0 14px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
   .section-label-text {
@@ -103,90 +53,91 @@
     background: rgba(0,0,0,0.08);
   }
 
-  /* ── KPI Section ── */
-  .kpi-section {
-    padding: 16px 0 12px;
+  /* ── KPI Rows ── */
+  .kpi-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kpi-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 14px;
+  }
+
+  .kpi-row:nth-child(even) {
+    background: rgba(124,58,237,0.04);
+  }
+
+  .kpi-row-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .kpi-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
     flex-shrink: 0;
   }
 
-  /* ── KPI Grid ── */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    padding: 0 14px;
-  }
-
-  .kpi-card {
-    background: #faf9ff;
-    border: 1px solid rgba(124,58,237,0.12);
-    border-radius: 10px;
-    padding: 12px 10px 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .kpi-card:nth-child(1) { border-top: 3px solid #7c3aed; }
-  .kpi-card:nth-child(2) { border-top: 3px solid #6d28d9; }
-  .kpi-card:nth-child(3) { border-top: 3px solid #8b5cf6; }
-  .kpi-card:nth-child(4) { border-top: 3px solid #a78bfa; }
+  .kpi-row:nth-child(1) .kpi-dot { background: #7c3aed; }
+  .kpi-row:nth-child(2) .kpi-dot { background: #6d28d9; }
+  .kpi-row:nth-child(3) .kpi-dot { background: #8b5cf6; }
+  .kpi-row:nth-child(4) .kpi-dot { background: #a78bfa; }
 
   .kpi-label {
-    font-size: 9px;
-    font-weight: 600;
-    color: rgba(0,0,0,0.45);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(0,0,0,0.50);
   }
 
   .kpi-value {
-    font-size: 20px;
-    font-weight: 800;
-    color: #1a0533;
-    letter-spacing: -0.5px;
-    line-height: 1;
+    font-size: 15px;
+    font-weight: 700;
+    color: #7c3aed;
+    letter-spacing: -0.3px;
   }
 </style>
 </head>
 <body>
 <div class='panel'>
 
-  <!-- ── Brand Header ── -->
-  <div class='brand-header'>
-    <div class='logo-mark'>O</div>
-    <div class='brand-text'>
-      <div class='brand-name'>OrgIntel</div>
-      <div class='brand-subtitle'>People &amp; Structure Analytics</div>
-    </div>
+  <div class='section-label'>
+    <span class='section-label-text'>SUMMARY</span>
+    <div class='section-label-line'></div>
   </div>
 
-  <!-- ── KPI Summary ── -->
-  <div class='kpi-section'>
-    <div class='section-label'>
-      <span class='section-label-text'>SUMMARY</span>
-      <div class='section-label-line'></div>
+  <div class='kpi-list'>
+    <div class='kpi-row'>
+      <div class='kpi-row-left'>
+        <div class='kpi-dot'></div>
+        <span class='kpi-label'>Source Systems</span>
+      </div>
+      <span class='kpi-value'>—</span>
     </div>
-    <div class='kpi-grid'>
-      <div class='kpi-card'>
-        <span class='kpi-label'>KPI 1</span>
-        <span class='kpi-value'>—</span>
+    <div class='kpi-row'>
+      <div class='kpi-row-left'>
+        <div class='kpi-dot'></div>
+        <span class='kpi-label'>Databases</span>
       </div>
-      <div class='kpi-card'>
-        <span class='kpi-label'>KPI 2</span>
-        <span class='kpi-value'>—</span>
+      <span class='kpi-value'>—</span>
+    </div>
+    <div class='kpi-row'>
+      <div class='kpi-row-left'>
+        <div class='kpi-dot'></div>
+        <span class='kpi-label'>Users</span>
       </div>
-      <div class='kpi-card'>
-        <span class='kpi-label'>KPI 3</span>
-        <span class='kpi-value'>—</span>
+      <span class='kpi-value'>—</span>
+    </div>
+    <div class='kpi-row'>
+      <div class='kpi-row-left'>
+        <div class='kpi-dot'></div>
+        <span class='kpi-label'>Metrics</span>
       </div>
-      <div class='kpi-card'>
-        <span class='kpi-label'>KPI 4</span>
-        <span class='kpi-value'>—</span>
-      </div>
+      <span class='kpi-value'>—</span>
     </div>
   </div>
 
