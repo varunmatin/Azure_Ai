@@ -1,7 +1,89 @@
+// ============================================================
+//  DAX Measure — UDX Org Nav Panel
+//  Visual : HTML Content  (Daniel Marsh-Patrick / htmlcontent)
+//  Usage  : Paste into a new measure, bind to HTML field well.
+//  KPI bindings:
+//    _kpi1 = Revenue Total        e.g. [Revenue Total]
+//    _kpi2 = Per Cap              e.g. [Per Cap]
+//    _kpi3 = Transactions         e.g. [Transactions]
+//    _kpi4 = Labor Hours          e.g. [Labor Hours]
+//    _kpi5 = Labor %              e.g. [Labor Pct]
+//    _kpi6 = VOP $                e.g. [VOP Amount]
+//    _kpi7 = VOP %                e.g. [VOP Pct]
+//    _kpi8 = COGS %               e.g. [COGS Pct]
+//    _kpi9 = Per Cap (PER CAP)    e.g. [Per Cap]  (same as _kpi2)
+// ============================================================
+
 OrgPanel =
 VAR _kpi1 = [KPI1]
 VAR _kpi2 = [KPI2]
 VAR _kpi3 = [KPI3]
 VAR _kpi4 = [KPI4]
+VAR _kpi5 = [KPI5]
+VAR _kpi6 = [KPI6]
+VAR _kpi7 = [KPI7]
+VAR _kpi8 = [KPI8]
+VAR _kpi9 = [KPI9]
 RETURN
-"<!DOCTYPE html> <html lang='en'> <head> <meta charset='UTF-8'> <meta name='viewport' content='width=220'> <style> *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } html { height: 100%; overflow: hidden; } body { width: 100%; height: 100%; overflow: hidden; background: #ffffff; font-family: 'Segoe UI', Tahoma, sans-serif; -webkit-font-smoothing: antialiased; } .panel { display: flex; flex-direction: column; width: 100%; height: 100%; background: #ffffff; overflow: hidden; padding: 16px 0 12px; } .section-label { display: flex; align-items: center; gap: 7px; padding: 0 14px; margin-bottom: 10px; } .section-label-text { font-size: 8.5px; font-weight: 700; color: rgba(0,0,0,0.32); text-transform: uppercase; letter-spacing: 1.3px; white-space: nowrap; } .section-label-line { flex: 1; height: 1px; background: rgba(0,0,0,0.08); } .kpi-list { display: flex; flex-direction: column; } .kpi-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; } .kpi-row:nth-child(even) { background: rgba(124,58,237,0.04); } .kpi-row-left { display: flex; align-items: center; gap: 8px; } .kpi-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; } .kpi-row:nth-child(1) .kpi-dot { background: #7c3aed; } .kpi-row:nth-child(2) .kpi-dot { background: #6d28d9; } .kpi-row:nth-child(3) .kpi-dot { background: #8b5cf6; } .kpi-row:nth-child(4) .kpi-dot { background: #a78bfa; } .kpi-label { font-size: 11px; font-weight: 500; color: rgba(0,0,0,0.50); } .kpi-value { font-size: 15px; font-weight: 700; color: #7c3aed; letter-spacing: -0.3px; } </style> </head> <body> <div class='panel'> <div class='section-label'> <span class='section-label-text'>SUMMARY</span> <div class='section-label-line'></div> </div> <div class='kpi-list'> <div class='kpi-row'> <div class='kpi-row-left'> <div class='kpi-dot'></div> <span class='kpi-label'>Source Systems</span> </div> <span class='kpi-value'>" & _kpi1 & "</span> </div> <div class='kpi-row'> <div class='kpi-row-left'> <div class='kpi-dot'></div> <span class='kpi-label'>Databases</span> </div> <span class='kpi-value'>" & _kpi2 & "</span> </div> <div class='kpi-row'> <div class='kpi-row-left'> <div class='kpi-dot'></div> <span class='kpi-label'>Users</span> </div> <span class='kpi-value'>" & _kpi3 & "</span> </div> <div class='kpi-row'> <div class='kpi-row-left'> <div class='kpi-dot'></div> <span class='kpi-label'>Metrics</span> </div> <span class='kpi-value'>" & _kpi4 & "</span> </div> </div> </div> </body> </html>"
+"<!DOCTYPE html>" &
+"<html lang='en'><head><meta charset='UTF-8'>" &
+"<meta name='viewport' content='width=240'>" &
+"<style>" &
+"*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}" &
+"html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',Tahoma,sans-serif;-webkit-font-smoothing:antialiased;}" &
+"body{background:#fff;padding:12px;display:flex;flex-direction:column;gap:0;}" &
+".brand{font-size:13px;font-weight:700;color:#F97316;letter-spacing:0.5px;margin-bottom:10px;}" &
+".cards{display:flex;flex-direction:column;gap:8px;flex:1;}" &
+".row2{display:flex;gap:8px;}" &
+".row2 .card{flex:1;}" &
+".card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;}" &
+".card.blue{border-left:4px solid #1D4ED8;}" &
+".card.orange{border-left:4px solid #F97316;}" &
+".card.green{border-left:4px solid #059669;}" &
+".card.red{border-left:4px solid #DC2626;}" &
+".card-label{font-size:8px;font-weight:700;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:1px;}" &
+".card-value{font-size:22px;font-weight:700;color:#0F172A;letter-spacing:-0.5px;line-height:1.1;}" &
+".card-sub{font-size:10px;color:#64748B;}" &
+".footer{font-size:8.5px;font-style:italic;color:#94A3B8;margin-top:10px;line-height:1.4;}" &
+"</style></head><body>" &
+"<div class='brand'>UDX</div>" &
+"<div class='cards'>" &
+
+"<div class='card blue'>" &
+"<div class='card-label'>REVENUE (TOTAL)</div>" &
+"<div class='card-value'>" & _kpi1 & "</div>" &
+"<div class='card-sub'>Per Cap: " & _kpi2 & "</div>" &
+"</div>" &
+
+"<div class='card orange'>" &
+"<div class='card-label'>TRANSACTIONS</div>" &
+"<div class='card-value'>" & _kpi3 & "</div>" &
+"</div>" &
+
+"<div class='row2'>" &
+"<div class='card blue'>" &
+"<div class='card-label'>LABOR HOURS</div>" &
+"<div class='card-value'>" & _kpi4 & "</div>" &
+"<div class='card-sub'>Labor %: " & _kpi5 & "</div>" &
+"</div>" &
+"<div class='card green'>" &
+"<div class='card-label'>VOP $</div>" &
+"<div class='card-value'>" & _kpi6 & "</div>" &
+"<div class='card-sub'>VOP %: " & _kpi7 & "</div>" &
+"</div>" &
+"</div>" &
+
+"<div class='row2'>" &
+"<div class='card red'>" &
+"<div class='card-label'>COGS %</div>" &
+"<div class='card-value'>" & _kpi8 & "</div>" &
+"</div>" &
+"<div class='card orange'>" &
+"<div class='card-label'>PER CAP</div>" &
+"<div class='card-value'>" & _kpi9 & "</div>" &
+"</div>" &
+"</div>" &
+
+"</div>" &
+"<div class='footer'>* Sample data &#8212; replace with actuals from your source system</div>" &
+"</body></html>"
