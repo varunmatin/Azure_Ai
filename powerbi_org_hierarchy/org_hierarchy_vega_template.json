@@ -10,7 +10,7 @@
   "signals": [
     {"name": "titleH",   "value": 10},
     {"name": "legendH",  "value": 36},
-    {"name": "legendGap","value": 20},
+    {"name": "legendGap","value": 50},
     {"name": "hdrH",     "value": 22},
     {"name": "gapX",     "value": 10},
     {"name": "hMargin",  "value": 6},
