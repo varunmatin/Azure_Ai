@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "Power BI Organization Hierarchy — Deneb Visual. Collapsible/expandable tree; click the ＋/− button on any node to toggle its subtree. All position math lives in the data pipeline.",
+  "description": "Power BI Organization Hierarchy — Deneb Visual. Collapsible/expandable tree; click the +/− button on any node to toggle its subtree. All position math lives in the data pipeline.",
   "width": 1200,
   "height": 700,
   "padding": 0,
@@ -39,13 +39,14 @@
       "name": "treeWidth",
       "update": "width"
     },
+
     {
-      "name": "toggleNode",
-      "value": null,
+      "name": "collapsedStr",
+      "value": "|",
       "on": [
         {
           "events": {"type": "click", "markname": "collapseBtn"},
-          "update": "{'EmployeeID': datum.EmployeeID}"
+          "update": "indexof(collapsedStr, '|' + toString(datum.EmployeeID) + '|') >= 0 ? replace(collapsedStr, '|' + toString(datum.EmployeeID) + '|', '|') : collapsedStr + toString(datum.EmployeeID) + '|'"
         }
       ]
     }
@@ -63,17 +64,6 @@
         {
           "type": "filter",
           "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"
-        }
-      ]
-    },
-
-    {
-      "name": "collapsedNodes",
-      "values": [],
-      "on": [
-        {
-          "trigger": "toggleNode",
-          "toggle": "toggleNode"
         }
       ]
     },
@@ -114,7 +104,7 @@
 
         {
           "type": "filter",
-          "expr": "!indata('collapsedNodes', 'EmployeeID', datum.ManagerID) && !indata('collapsedNodes', 'EmployeeID', datum.gpID) && !indata('collapsedNodes', 'EmployeeID', datum.ggpID) && !indata('collapsedNodes', 'EmployeeID', datum.gggpID)"
+          "expr": "indexof(collapsedStr, '|' + toString(datum.ManagerID) + '|') < 0 && indexof(collapsedStr, '|' + toString(datum.gpID) + '|') < 0 && indexof(collapsedStr, '|' + toString(datum.ggpID) + '|') < 0 && indexof(collapsedStr, '|' + toString(datum.gggpID) + '|') < 0"
         },
 
         {
@@ -194,6 +184,12 @@
           "type": "formula",
           "as": "displayY",
           "expr": "datum.rawY * datum.scaleY + titleH"
+        },
+
+        {
+          "type": "formula",
+          "as": "hasChildren",
+          "expr": "indata('nodeMap', 'ManagerID', datum.EmployeeID) || indata('nodeMap', 'ManagerID', toString(datum.EmployeeID))"
         }
       ]
     },
@@ -461,12 +457,12 @@
           "width":        {"value": 16},
           "height":       {"value": 16},
           "cornerRadius": {"value": 8},
-          "fill":         {"signal": "indata('collapsedNodes', 'EmployeeID', datum.EmployeeID) ? '#1D4ED8' : '#94A3B8'"},
+          "fill":         {"signal": "indexof(collapsedStr, '|' + toString(datum.EmployeeID) + '|') >= 0 ? '#1D4ED8' : '#94A3B8'"},
           "stroke":       {"value": "#FFFFFF"},
           "strokeWidth":  {"value": 1.5},
           "cursor":       {"value": "pointer"},
-          "opacity":      {"signal": "indata('nodeMap', 'ManagerID', datum.EmployeeID) ? 1 : 0"},
-          "tooltip":      {"signal": "indata('collapsedNodes', 'EmployeeID', datum.EmployeeID) ? 'Click to expand' : 'Click to collapse'"}
+          "opacity":      {"signal": "datum.hasChildren ? 1 : 0"},
+          "tooltip":      {"signal": "indexof(collapsedStr, '|' + toString(datum.EmployeeID) + '|') >= 0 ? 'Click to expand' : 'Click to collapse'"}
         }
       }
     },
@@ -479,14 +475,14 @@
         "update": {
           "x":          {"signal": "datum.displayX + datum.nodeW / 2"},
           "y":          {"signal": "datum.displayY + datum.nodeH"},
-          "text":       {"signal": "indata('collapsedNodes', 'EmployeeID', datum.EmployeeID) ? '+' : '−'"},
+          "text":       {"signal": "indexof(collapsedStr, '|' + toString(datum.EmployeeID) + '|') >= 0 ? '+' : '\u2212'"},
           "align":      {"value": "center"},
           "baseline":   {"value": "middle"},
           "fill":       {"value": "#FFFFFF"},
-          "fontSize":   {"value": 10},
+          "fontSize":   {"value": 11},
           "fontWeight": {"value": "bold"},
           "font":       {"value": "Segoe UI, sans-serif"},
-          "opacity":    {"signal": "indata('nodeMap', 'ManagerID', datum.EmployeeID) ? 1 : 0"}
+          "opacity":    {"signal": "datum.hasChildren ? 1 : 0"}
         }
       }
     },
