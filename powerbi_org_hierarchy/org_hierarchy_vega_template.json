@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "Power BI Organization Hierarchy — Deneb Visual. Collapsible/expandable tree; click the +/− button on any node to toggle its subtree. All position math lives in the data pipeline.",
+  "description": "Power BI Organization Hierarchy — Deneb Visual. Collapsible/expandable tree via treeClickStorePerm pattern. Click the +/− button on any node to toggle its subtree.",
   "width": 1200,
   "height": 700,
   "padding": 0,
@@ -41,12 +41,37 @@
     },
 
     {
-      "name": "collapsedStr",
-      "value": "|",
+      "name": "startingDepth",
+      "value": 99,
+      "on": [{"events": {"type": "timer", "throttle": 0}, "update": "-1"}]
+    },
+
+    {
+      "name": "down",
+      "value": null,
+      "on": [
+        {"events": "mousedown,touchstart", "update": "xy()"}
+      ]
+    },
+
+    {
+      "name": "isExpanded",
+      "value": false,
       "on": [
         {
           "events": {"type": "click", "markname": "collapseBtn"},
-          "update": "indexof(collapsedStr, '|' + toString(datum.EmployeeID) + '|') >= 0 ? replace(collapsedStr, '|' + toString(datum.EmployeeID) + '|', '|') : collapsedStr + toString(datum.EmployeeID) + '|'"
+          "update": "datum.totalChildren > 0 && datum.childrenIds && indata('treeClickStorePerm', 'EmployeeID', datum.childrenIds[0]) ? true : false"
+        }
+      ]
+    },
+
+    {
+      "name": "node",
+      "value": 0,
+      "on": [
+        {
+          "events": {"type": "click", "markname": "collapseBtn"},
+          "update": "xy()[0]==down[0] && xy()[1]==down[1] ? datum.EmployeeID : 0"
         }
       ]
     }
@@ -58,55 +83,13 @@
     },
 
     {
-      "name": "nodeMap",
-      "source": "dataset",
-      "transform": [
-        {
-          "type": "filter",
-          "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"
-        }
-      ]
-    },
-
-    {
-      "name": "tree",
+      "name": "treeCalcs",
       "source": "dataset",
       "transform": [
         {
           "type": "filter",
           "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"
         },
-
-        {
-          "type": "lookup",
-          "from": "nodeMap",
-          "key": "EmployeeID",
-          "fields": ["ManagerID"],
-          "values": ["ManagerID"],
-          "as": ["gpID"]
-        },
-        {
-          "type": "lookup",
-          "from": "nodeMap",
-          "key": "EmployeeID",
-          "fields": ["gpID"],
-          "values": ["ManagerID"],
-          "as": ["ggpID"]
-        },
-        {
-          "type": "lookup",
-          "from": "nodeMap",
-          "key": "EmployeeID",
-          "fields": ["ggpID"],
-          "values": ["ManagerID"],
-          "as": ["gggpID"]
-        },
-
-        {
-          "type": "filter",
-          "expr": "indexof(collapsedStr, '|' + toString(datum.ManagerID) + '|') < 0 && indexof(collapsedStr, '|' + toString(datum.gpID) + '|') < 0 && indexof(collapsedStr, '|' + toString(datum.ggpID) + '|') < 0 && indexof(collapsedStr, '|' + toString(datum.gggpID) + '|') < 0"
-        },
-
         {
           "type": "stratify",
           "key": "EmployeeID",
@@ -118,6 +101,120 @@
           "size": [1000, 1000],
           "separation": false,
           "as": ["rawX", "rawY", "depth", "children"]
+        },
+        {
+          "type": "formula",
+          "as": "ManagerID",
+          "expr": "datum.ManagerID"
+        }
+      ]
+    },
+
+    {
+      "name": "treeChildren",
+      "source": "treeCalcs",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["ManagerID"],
+          "fields": ["ManagerID"],
+          "ops": ["values"],
+          "as": ["childrenObjects"]
+        },
+        {
+          "type": "formula",
+          "expr": "pluck(datum.childrenObjects, 'EmployeeID')",
+          "as": "childrenIds"
+        }
+      ]
+    },
+
+    {
+      "name": "treeAncestors",
+      "source": "treeCalcs",
+      "transform": [
+        {
+          "type": "formula",
+          "as": "ancestors",
+          "expr": "treeAncestors('treeCalcs', datum.EmployeeID)"
+        },
+        {
+          "type": "flatten",
+          "fields": ["ancestors"]
+        },
+        {
+          "type": "formula",
+          "expr": "datum.ancestors.ManagerID",
+          "as": "allParents"
+        }
+      ]
+    },
+
+    {
+      "name": "treeClickStoreTemp",
+      "source": "treeAncestors",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "startingDepth != -1 ? datum.depth <= startingDepth : node != 0 && !isExpanded ? datum.ManagerID == node : node != 0 && isExpanded ? datum.allParents == node : false"
+        },
+        {
+          "type": "aggregate",
+          "groupby": ["EmployeeID", "ManagerID", "depth"]
+        }
+      ]
+    },
+
+    {
+      "name": "treeClickStorePerm",
+      "values": [],
+      "on": [
+        {"trigger": "startingDepth >= 0", "insert": "data('treeClickStoreTemp')"},
+        {"trigger": "node && !isExpanded",  "insert": "data('treeClickStoreTemp')"},
+        {"trigger": "node && isExpanded",   "remove": "data('treeClickStoreTemp')"}
+      ]
+    },
+
+    {
+      "name": "tree",
+      "source": "dataset",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"
+        },
+        {
+          "type": "filter",
+          "expr": "indata('treeClickStorePerm', 'EmployeeID', datum.EmployeeID)"
+        },
+        {
+          "type": "stratify",
+          "key": "EmployeeID",
+          "parentKey": "ManagerID"
+        },
+        {
+          "type": "tree",
+          "method": "tidy",
+          "size": [1000, 1000],
+          "separation": false,
+          "as": ["rawX", "rawY", "depth", "children"]
+        },
+
+        {
+          "type": "lookup",
+          "from": "treeChildren",
+          "key": "ManagerID",
+          "fields": ["EmployeeID"],
+          "values": ["childrenIds"],
+          "as": ["childrenIds"]
+        },
+        {
+          "type": "lookup",
+          "from": "treeCalcs",
+          "key": "EmployeeID",
+          "fields": ["EmployeeID"],
+          "values": ["children"],
+          "as": ["totalChildren"]
         },
 
         {
@@ -184,12 +281,6 @@
           "type": "formula",
           "as": "displayY",
           "expr": "datum.rawY * datum.scaleY + titleH"
-        },
-
-        {
-          "type": "formula",
-          "as": "hasChildren",
-          "expr": "indata('nodeMap', 'ManagerID', datum.EmployeeID) || indata('nodeMap', 'ManagerID', toString(datum.EmployeeID))"
         }
       ]
     },
@@ -457,12 +548,12 @@
           "width":        {"value": 16},
           "height":       {"value": 16},
           "cornerRadius": {"value": 8},
-          "fill":         {"signal": "indexof(collapsedStr, '|' + toString(datum.EmployeeID) + '|') >= 0 ? '#1D4ED8' : '#94A3B8'"},
+          "fill":         {"signal": "datum.totalChildren > 0 && datum.childrenIds && indata('treeClickStorePerm', 'EmployeeID', datum.childrenIds[0]) ? '#1D4ED8' : '#94A3B8'"},
           "stroke":       {"value": "#FFFFFF"},
           "strokeWidth":  {"value": 1.5},
           "cursor":       {"value": "pointer"},
-          "opacity":      {"signal": "datum.hasChildren ? 1 : 0"},
-          "tooltip":      {"signal": "indexof(collapsedStr, '|' + toString(datum.EmployeeID) + '|') >= 0 ? 'Click to expand' : 'Click to collapse'"}
+          "opacity":      {"signal": "datum.totalChildren > 0 ? 1 : 0"},
+          "tooltip":      {"signal": "datum.totalChildren > 0 && datum.childrenIds && indata('treeClickStorePerm', 'EmployeeID', datum.childrenIds[0]) ? 'Click to collapse' : 'Click to expand'"}
         }
       }
     },
@@ -475,14 +566,14 @@
         "update": {
           "x":          {"signal": "datum.displayX + datum.nodeW / 2"},
           "y":          {"signal": "datum.displayY + datum.nodeH"},
-          "text":       {"signal": "indexof(collapsedStr, '|' + toString(datum.EmployeeID) + '|') >= 0 ? '+' : '\u2212'"},
+          "text":       {"signal": "datum.totalChildren > 0 && datum.childrenIds && indata('treeClickStorePerm', 'EmployeeID', datum.childrenIds[0]) ? '\u2212' : '+'"},
           "align":      {"value": "center"},
           "baseline":   {"value": "middle"},
           "fill":       {"value": "#FFFFFF"},
           "fontSize":   {"value": 11},
           "fontWeight": {"value": "bold"},
           "font":       {"value": "Segoe UI, sans-serif"},
-          "opacity":    {"signal": "datum.hasChildren ? 1 : 0"}
+          "opacity":    {"signal": "datum.totalChildren > 0 ? 1 : 0"}
         }
       }
     },
