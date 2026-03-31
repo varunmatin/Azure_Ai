@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "Power BI Organization Hierarchy — Deneb Visual. Fully responsive; all position math lives in the data pipeline to avoid signal/datum scoping issues in Deneb.",
+  "description": "Power BI Organization Hierarchy — Deneb Visual. Collapsible/expandable tree; click the ＋/− button on any node to toggle its subtree. All position math lives in the data pipeline.",
   "width": 1200,
   "height": 700,
   "padding": 0,
@@ -10,10 +10,11 @@
   "signals": [
     {"name": "titleH",   "value": 10},
     {"name": "legendH",  "value": 36},
-    {"name": "legendGap","value": 25},
-    {"name": "hdrH",    "value": 22},
-    {"name": "gapX",    "value": 10},
-    {"name": "hMargin", "value": 6},
+    {"name": "legendGap","value": 20},
+    {"name": "hdrH",     "value": 22},
+    {"name": "gapX",     "value": 10},
+    {"name": "hMargin",  "value": 6},
+
     {
       "name": "pbiCrossFilterApply",
       "on": [
@@ -37,6 +38,16 @@
     {
       "name": "treeWidth",
       "update": "width"
+    },
+    {
+      "name": "toggleNode",
+      "value": null,
+      "on": [
+        {
+          "events": {"type": "click", "markname": "collapseBtn"},
+          "update": "{'EmployeeID': datum.EmployeeID}"
+        }
+      ]
     }
   ],
 
@@ -44,6 +55,29 @@
     {
       "name": "dataset"
     },
+
+    {
+      "name": "nodeMap",
+      "source": "dataset",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"
+        }
+      ]
+    },
+
+    {
+      "name": "collapsedNodes",
+      "values": [],
+      "on": [
+        {
+          "trigger": "toggleNode",
+          "toggle": "toggleNode"
+        }
+      ]
+    },
+
     {
       "name": "tree",
       "source": "dataset",
@@ -52,6 +86,37 @@
           "type": "filter",
           "expr": "datum.EmployeeID != null && datum.EmployeeID !== ''"
         },
+
+        {
+          "type": "lookup",
+          "from": "nodeMap",
+          "key": "EmployeeID",
+          "fields": ["ManagerID"],
+          "values": ["ManagerID"],
+          "as": ["gpID"]
+        },
+        {
+          "type": "lookup",
+          "from": "nodeMap",
+          "key": "EmployeeID",
+          "fields": ["gpID"],
+          "values": ["ManagerID"],
+          "as": ["ggpID"]
+        },
+        {
+          "type": "lookup",
+          "from": "nodeMap",
+          "key": "EmployeeID",
+          "fields": ["ggpID"],
+          "values": ["ManagerID"],
+          "as": ["gggpID"]
+        },
+
+        {
+          "type": "filter",
+          "expr": "!indata('collapsedNodes', 'EmployeeID', datum.ManagerID) && !indata('collapsedNodes', 'EmployeeID', datum.gpID) && !indata('collapsedNodes', 'EmployeeID', datum.ggpID) && !indata('collapsedNodes', 'EmployeeID', datum.gggpID)"
+        },
+
         {
           "type": "stratify",
           "key": "EmployeeID",
@@ -132,6 +197,7 @@
         }
       ]
     },
+
     {
       "name": "links",
       "source": "tree",
@@ -166,7 +232,6 @@
   ],
 
   "marks": [
-
 
     {
       "type": "path",
@@ -381,6 +446,47 @@
           "tooltip": {
             "signal": "{'Name': datum.Name, 'Title': datum.Title, 'Department': datum.Department, 'Location': datum.Location, 'Employee ID': datum.EmployeeID, 'Metric Field': datum['Metric Field'], 'Level': datum.depth + 1}"
           }
+        }
+      }
+    },
+
+    {
+      "name": "collapseBtn",
+      "type": "rect",
+      "from": {"data": "tree"},
+      "encode": {
+        "update": {
+          "x":            {"signal": "datum.displayX + datum.nodeW / 2 - 8"},
+          "y":            {"signal": "datum.displayY + datum.nodeH - 8"},
+          "width":        {"value": 16},
+          "height":       {"value": 16},
+          "cornerRadius": {"value": 8},
+          "fill":         {"signal": "indata('collapsedNodes', 'EmployeeID', datum.EmployeeID) ? '#1D4ED8' : '#94A3B8'"},
+          "stroke":       {"value": "#FFFFFF"},
+          "strokeWidth":  {"value": 1.5},
+          "cursor":       {"value": "pointer"},
+          "opacity":      {"signal": "indata('nodeMap', 'ManagerID', datum.EmployeeID) ? 1 : 0"},
+          "tooltip":      {"signal": "indata('collapsedNodes', 'EmployeeID', datum.EmployeeID) ? 'Click to expand' : 'Click to collapse'"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": {"data": "tree"},
+      "interactive": false,
+      "encode": {
+        "update": {
+          "x":          {"signal": "datum.displayX + datum.nodeW / 2"},
+          "y":          {"signal": "datum.displayY + datum.nodeH"},
+          "text":       {"signal": "indata('collapsedNodes', 'EmployeeID', datum.EmployeeID) ? '+' : '−'"},
+          "align":      {"value": "center"},
+          "baseline":   {"value": "middle"},
+          "fill":       {"value": "#FFFFFF"},
+          "fontSize":   {"value": 10},
+          "fontWeight": {"value": "bold"},
+          "font":       {"value": "Segoe UI, sans-serif"},
+          "opacity":    {"signal": "indata('nodeMap', 'ManagerID', datum.EmployeeID) ? 1 : 0"}
         }
       }
     },
